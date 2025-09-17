@@ -62,6 +62,16 @@ export const profileConfig: ProfileConfig = {
 			icon: "fa6-brands:github",
 			url: "https://github.com/zszz3/",
 		},
+		{
+			name: "Zhihu",
+			icon: "fa6-brands:zhihu",
+			url: "https://www.zhihu.com/people/wo-jie-ci-huo-3",
+		},
+		{
+			name: "QQ",
+			icon: "fa6-brands:qq",
+			url: "tencent://message/?uin=1421085859&Site=&Menu=yes",
+		},
 	],
 };
 
