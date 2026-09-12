@@ -1,24 +1,28 @@
 {
   "extends": "astro/tsconfigs/strict",
+  "include": ["./.astro/types.d.ts", "./**/*"],
   "compilerOptions": {
-    "baseUrl": ".",
+    // Basic
+    "allowJs": true,
+    // Code runs in the DOM
+    "lib": ["es2022", "dom", "dom.iterable"],
+    // Type Imports
+    "verbatimModuleSyntax": true,
+    // Others
     "strictNullChecks": true,
-    "allowJs": false,
-    "declaration": true,
-    "plugins": [
-      {
-        "name": "@astrojs/ts-plugin"
-      }
-    ],
+    // Paths
     "paths": {
-      "@components/*": ["src/components/*"],
-      "@assets/*": ["src/assets/*"],
-      "@constants/*": ["src/constants/*"],
-      "@utils/*": ["src/utils/*"],
-      "@i18n/*": ["src/i18n/*"],
-      "@layouts/*": ["src/layouts/*"],
-      "@/*": ["src/*"]
+      "@/assets/*": ["./src/assets/*"],
+      "@/public/*": ["./public/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/layouts/*": ["./src/layouts/*"],
+      "@/utils": ["./src/utils/index.ts"],
+      "@/utils/*": ["./src/utils/*"],
+      "@/plugins/*": ["./src/plugins/*"],
+      "@/pages/*": ["./src/pages/*"],
+      "@/types": ["./src/types/index.ts"],
+      "@/site-config": ["./src/site.config.ts"]
     }
   },
-  "include": ["src/**/*"]
+  "exclude": ["./packages", "./preset", "./node_modules", "./**/node_modules/*", "./.vscode", "./dist", "./public/scripts/*", "./test/*"]
 }

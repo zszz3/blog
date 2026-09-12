@@ -1,39 +1,98 @@
-name: Deploy to GitHub Pages
-
+name: Build and publish blog
 on:
-  # 每次推送到 `main` 分支时触发这个“工作流程”
-  # 如果你使用了别的分支名，请按需将 `main` 替换成你的分支名
   push:
-    branches: [ main ]
-  # 允许你在 GitHub 上的 Actions 标签中手动触发此“工作流程”
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
-
-# 允许 job 克隆 repo 并创建一个 page deployment
+    inputs:
+      operation:
+        description: 发布新版本或回退
+        type: choice
+        options: [publish, rollback]
+        default: publish
+      release:
+        description: 回退版本（previous 表示上一版）
+        type: string
+        default: previous
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
+concurrency:
+  group: blog-${{ github.event_name == 'pull_request' && github.ref || 'production' }}
+  cancel-in-progress: false
 jobs:
   build:
+    if: inputs.operation != 'rollback'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout your repository using git
-        uses: actions/checkout@v4
-      - name: Install, build, and upload your site
-        uses: withastro/action@v3
-        # with:
-          # path: . # 存储库中 Astro 项目的根位置。（可选）
-          # node-version: 20 # 用于构建站点的特定 Node.js 版本，默认为 20。（可选）
-          # package-manager: pnpm@latest # 应使用哪个 Node.js 包管理器来安装依赖项和构建站点。会根据存储库中的 lockfile 自动检测。（可选）
-
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Test release switching and rollback
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
+      - name: Build pages, search and RSS
+        run: pnpm build
+        env:
+          SITE_URL: https://wojiecihuo.cn
+          PUBLIC_ICP_NUMBER: ${{ vars.PUBLIC_ICP_NUMBER }}
+      - name: Verify generated links and assets
+        run: python3 scripts/verify_site.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: website-${{ github.sha }}
+          path: dist/
+          include-hidden-files: true
+          retention-days: 7
+      - name: Deployment setup status
+        if: vars.ECS_DEPLOY_ENABLED != 'true'
+        run: echo '网站已构建。首次配置服务器凭证并将 ECS_DEPLOY_ENABLED 设为 true 后，将自动发布到阿里云。' >> "$GITHUB_STEP_SUMMARY"
   deploy:
     needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.ECS_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      name: production
+      url: https://wojiecihuo.cn
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/checkout@v4
+      - name: Skip if this commit is no longer main
+        id: current
+        run: |
+          latest=$(git ls-remote origin refs/heads/main | cut -f1)
+          if [ "$latest" = "$GITHUB_SHA" ]; then echo 'publish=true' >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/download-artifact@v4
+        if: steps.current.outputs.publish == 'true'
+        with:
+          name: website-${{ github.sha }}
+          path: dist
+      - name: Publish complete release
+        if: steps.current.outputs.publish == 'true'
+        run: bash scripts/deploy.sh
+        env:
+          ECS_HOST: ${{ vars.ECS_HOST || '8.130.31.33' }}
+          ECS_USER: ${{ vars.ECS_USER }}
+          ECS_PORT: ${{ vars.ECS_PORT || '22' }}
+          ECS_SITE_ROOT: ${{ vars.ECS_SITE_ROOT || '/opt/wojiecihuo/site' }}
+          ECS_SSH_KEY: ${{ secrets.ECS_SSH_KEY }}
+          ECS_KNOWN_HOSTS: ${{ secrets.ECS_KNOWN_HOSTS }}
+  rollback:
+    if: github.event_name == 'workflow_dispatch' && inputs.operation == 'rollback' && github.ref == 'refs/heads/main' && vars.ECS_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore a checked release
+        run: bash scripts/deploy.sh
+        env:
+          DEPLOY_OPERATION: rollback
+          ROLLBACK_RELEASE: ${{ inputs.release }}
+          ECS_HOST: ${{ vars.ECS_HOST || '8.130.31.33' }}
+          ECS_USER: ${{ vars.ECS_USER }}
+          ECS_PORT: ${{ vars.ECS_PORT || '22' }}
+          ECS_SITE_ROOT: ${{ vars.ECS_SITE_ROOT || '/opt/wojiecihuo/site' }}
+          ECS_SSH_KEY: ${{ secrets.ECS_SSH_KEY }}
+          ECS_KNOWN_HOSTS: ${{ secrets.ECS_KNOWN_HOSTS }}

@@ -1,0 +1,11 @@
+---
+interface Props {kind: 'blog'|'docs'; title: string; date?: Date; category?: string; tags: string[]}
+const { kind, title, date, category, tags } = Astro.props
+---
+<div hidden>
+  <span data-pagefind-meta='title'>{title}</span>
+  <span data-pagefind-meta='kind' data-pagefind-filter='kind'>{kind}</span>
+  {date && <><span data-pagefind-meta='date' data-pagefind-sort='date'>{date.toISOString().slice(0,10)}</span><span data-pagefind-filter='year'>{date.getUTCFullYear()}</span></>}
+  {category && <span data-pagefind-meta='category' data-pagefind-filter='category'>{category}</span>}
+  {tags.map(tag => <span data-pagefind-filter='tag'>{tag}</span>)}
+</div>

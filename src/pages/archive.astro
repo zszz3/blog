@@ -1,14 +1,12 @@
 ---
-import ArchivePanel from "@components/ArchivePanel.svelte";
-import I18nKey from "@i18n/i18nKey";
-import { i18n } from "@i18n/translation";
-import MainGridLayout from "@layouts/MainGridLayout.astro";
-import { getSortedPostsList } from "../utils/content-utils";
-
-const sortedPostsList = await getSortedPostsList();
+import BaseLayout from '@/layouts/BaseLayout.astro'
 ---
-
-<MainGridLayout title={i18n(I18nKey.archive)}>
-    <ArchivePanel sortedPosts={sortedPostsList} client:load></ArchivePanel>
-</MainGridLayout>
-
+<BaseLayout meta={{title:'文章归档'}}>
+  <p>文章归档已迁移。<a href='/archives'>查看全部文章</a></p>
+  <script>
+    const params = new URLSearchParams(location.search)
+    const tag = params.get('tag'), category = params.get('category')
+    const target = tag ? '/tags/' + encodeURIComponent(tag) : category ? '/search?category=' + encodeURIComponent(category) : '/archives'
+    location.replace(target + location.hash)
+  </script>
+</BaseLayout>

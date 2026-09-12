@@ -1,42 +1,88 @@
-import rss from "@astrojs/rss";
-import { getSortedPosts } from "@utils/content-utils";
-import type { APIContext } from "astro";
-import MarkdownIt from "markdown-it";
-import sanitizeHtml from "sanitize-html";
-import { siteConfig } from "@/config";
-import { getPostUrlBySlug, url } from "../utils/url-utils";
+import type { AstroGlobal, ImageMetadata } from 'astro'
+import path from 'node:path'
+import { getImage } from 'astro:assets'
+import type { CollectionEntry } from 'astro:content'
+import rss from '@astrojs/rss'
+import type { Root } from 'mdast'
+import rehypeStringify from 'rehype-stringify'
+import remarkParse from 'remark-parse'
+import remarkRehype from 'remark-rehype'
+import { unified } from 'unified'
+import { visit } from 'unist-util-visit'
+import config from 'virtual:config'
 
-const parser = new MarkdownIt();
+import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
 
-function stripInvalidXmlChars(str: string): string {
-	return str.replace(
-		// biome-ignore lint/suspicious/noControlCharactersInRegex: https://www.w3.org/TR/xml/#charsets
-		/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F\uFDD0-\uFDEF\uFFFE\uFFFF]/g,
-		"",
-	);
+// Get dynamic import of images as a map collection
+const imagesGlob = import.meta.glob<{ default: ImageMetadata }>(
+  '/src/**/*.{jpeg,jpg,png,gif,avif,webp,svg}' // add more image formats if needed
+)
+
+const renderContent = async (post: CollectionEntry<'blog'>, site: URL) => {
+  // Replace image links with the correct path
+  function remarkReplaceImageLink() {
+    /**
+     * @param {Root} tree
+     */
+    return async (tree: Root) => {
+      const promises: Promise<void>[] = []
+      visit(tree, 'image', (node) => {
+        if (node.url.startsWith('/')) {
+          node.url = new URL(node.url, site).href
+        } else {
+          if (/^(https?:|data:)/i.test(node.url)) return
+          const imagePathPrefix = '/' + path.posix.normalize(path.posix.join(path.posix.dirname(post.filePath!), decodeURIComponent(node.url)))
+          const promise = imagesGlob[imagePathPrefix]?.().then(async (res) => {
+            const imagePath = res?.default
+            if (imagePath) {
+              node.url = `${site}${(await getImage({ src: imagePath })).src.replace('/', '')}`
+            }
+          })
+          if (promise) promises.push(promise)
+        }
+      })
+      await Promise.all(promises)
+    }
+  }
+
+  const file = await unified()
+    .use(remarkParse)
+    .use(remarkReplaceImageLink)
+    .use(remarkRehype)
+    .use(rehypeStringify)
+    .process(post.body)
+
+  return String(file)
 }
 
-export async function GET(context: APIContext) {
-	const blog = await getSortedPosts();
+const GET = async (context: AstroGlobal) => {
+  const allPostsByDate = sortMDByDate(await getBlogCollection()) as CollectionEntry<'blog'>[]
+  const siteUrl = context.site ?? new URL(import.meta.env.SITE)
 
-	return rss({
-		title: siteConfig.title,
-		description: siteConfig.subtitle || "No description",
-		site: new URL(url("/"), context.site),
-		items: blog.map((post) => {
-			const content =
-				typeof post.body === "string" ? post.body : String(post.body || "");
-			const cleanedContent = stripInvalidXmlChars(content);
-			return {
-				title: post.data.title,
-				pubDate: post.data.published,
-				description: post.data.description || "",
-				link: getPostUrlBySlug(post.slug),
-				content: sanitizeHtml(parser.render(cleanedContent), {
-					allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img"]),
-				}),
-			};
-		}),
-		customData: `<language>${siteConfig.lang}</language>`,
-	});
+  return rss({
+    // Basic configs
+    trailingSlash: false,
+    xmlns: { h: 'http://www.w3.org/TR/html4/', atom: 'http://www.w3.org/2005/Atom' },
+    stylesheet: '/scripts/pretty-feed-v3.xsl',
+
+    // Contents
+    title: config.title,
+    description: config.description,
+    site: import.meta.env.SITE,
+    items: await Promise.all(
+      allPostsByDate.map(async (post) => ({
+        pubDate: post.data.publishDate,
+        link: `/blog/${post.id}`,
+        // `pubDate` intentionally stays on `publishDate` so aggregators do not re-flow an
+        // edited post as new. `atom:updated` lets readers that support it detect the edit.
+        customData: post.data.updatedDate ? `<atom:updated>${post.data.updatedDate.toISOString()}</atom:updated>` : '',
+        content: await renderContent(post, siteUrl),
+        title: post.data.title,
+        description: post.data.description,
+        categories: post.data.tags
+      }))
+    )
+  })
 }
+
+export { GET }

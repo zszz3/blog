@@ -1,0 +1,54 @@
+---
+import { Image } from 'astro:assets'
+import { PostPreview } from 'astro-pure/components/pages'
+import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
+import { Button, Icon, Label, Card } from 'astro-pure/user'
+import PageLayout from '@/layouts/BaseLayout.astro'
+import ProjectCard from '@/components/home/ProjectCard.astro'
+import Section from '@/components/home/Section.astro'
+import SkillLayout from '@/components/home/SkillLayout.astro'
+import avatar from '@/assets/avatar.jpg'
+import config from '@/site-config'
+const posts = sortMDByDate(await getBlogCollection()).slice(0, 6)
+---
+<PageLayout meta={{ title: '首页' }} highlightColor='#dbe9ff'>
+  <main class='flex w-full flex-col items-center'>
+    <section class='animate mb-10 flex flex-col items-center gap-y-7' id='content-header'>
+      <Image src={avatar} alt='我借此火的头像' class='h-28 w-28 object-cover rounded-full border p-1' loading='eager' fetchpriority='high' />
+      <div class='flex flex-col items-center gap-y-4'>
+        <h1 class='text-3xl font-medium'>{config.author}</h1>
+        <div class='flex flex-wrap justify-center gap-x-7 gap-y-3'>
+          <Label title='代码、记录与日常'><Icon name='hashtag' class='size-5' slot='icon' /></Label>
+          <Label title='GitHub' as='a' href='https://github.com/zszz3' target='_blank'><Icon name='github' class='size-5' slot='icon' /></Label>
+        </div>
+      </div>
+      <a href='/search' class='home-search-link flex items-center gap-x-3 rounded-full border bg-background px-5 py-2.5 text-sm shadow-sm transition-shadow hover:shadow-md'><Icon name='search' class='size-5' /><span>搜索文章、代码与笔记</span><kbd>⌘ K</kbd></a>
+    </section>
+    <div id='content' class='animate flex flex-col gap-y-10 md:w-4/5 lg:w-5/6'>
+      <Section title='关于我'>
+        <p>🏫 <strong>Southeast University</strong></p>
+        <p class='text-muted-foreground profile-focus'>🎯 <strong>Focus:</strong> Backend · AI Agents · ASI · 3D Gaussian Splatting</p>
+        <Button title='更多关于我' class='w-fit self-end' href='/about' variant='ahead' />
+      </Section>
+      <Section title='最近的记录'>
+        <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>{posts.map(post => <PostPreview post={post} />)}</ul>
+        <Button title='全部文章' class='w-fit self-end' href='/blog' variant='ahead' />
+      </Section>
+      <Section title='学习笔记'>
+        <Card as='a' heading='Java 与数据库' subheading='把概念、例子和容易混淆的地方整理在一起。' href='/tags/八股' date='持续整理' />
+      </Section>
+      <Section title='项目与文档'>
+        <div class='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+          <ProjectCard href='/projects' heading='个人博客' subheading='文章、笔记和站点建设记录' imagePath='/src/assets/projects/1.avif' />
+          <ProjectCard href='/docs' heading='写作与发布' subheading='Markdown 上传、文章发布与模板使用' imagePath='/src/assets/projects/4.avif' />
+        </div>
+        <Button title='全部项目' class='w-fit self-end' href='/projects' variant='ahead' />
+      </Section>
+      <Section title='技术方向'>
+        <SkillLayout title='主要使用' skills={['Java']} />
+        <SkillLayout title='了解与学习' skills={['C++', 'Python', '3DGS']} />
+        <SkillLayout title='感兴趣' skills={['Agent']} />
+      </Section>
+    </div>
+  </main>
+</PageLayout>

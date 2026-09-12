@@ -1,0 +1,141 @@
+/* Theme */
+:root {
+  /* Primary */
+  --primary: 214 39% 42%;
+  --accent: 27 68% 55%;
+  --accent-ink: 26 62% 35%;
+  --blue-surface: 217 100% 97%;
+  --orange-surface: 27 100% 95%;
+  --warm: 28 100% 95%;
+  --warm-foreground: 25 65% 37%;
+  /* Foreground */
+  --foreground: 220 22% 18%;
+  --muted-foreground: 218 12% 39%;
+  /* Background */
+  --background: 0 0% 100%;
+  --muted: 240 4.8% 96%;
+  --card: 0 0% 90%;
+
+  /* Basic */
+  --border: 218 29% 88%;
+  --input: 240 5.9% 90%;
+  --ring: 240 5.9% 10%;
+  --radius: 0.5rem;
+}
+.dark {
+  /* Primary */
+  --primary: 214 50% 74%;
+  --accent: 27 74% 69%;
+  --accent-ink: 27 100% 73%;
+  --blue-surface: 220 32% 18%;
+  --orange-surface: 24 25% 17%;
+  --warm: 28 28% 20%;
+  --warm-foreground: 28 83% 75%;
+  /* Foreground */
+  --foreground: 0 0% 98%;
+  --muted-foreground: 240 5% 74.9%;
+  /* Background */
+  --background: 222 27% 10%;
+  --muted: 240 5.9% 13%;
+  --card: 240 3.7% 24.9%;
+
+  /* Basic */
+  --border: 240 3.7% 22.9%;
+  --input: 240 3.7% 17.9%;
+  --ring: 240 4.9% 83.9%;
+}
+:root {
+  --un-default-border-color: hsl(var(--border) / 1);
+}
+html.dark {
+  color-scheme: dark;
+}
+
+/* Global */
+a {
+  transition: color 0.2s ease;
+  &:hover {
+    color: hsl(var(--primary) / var(--un-text-opacity, 1));
+  }
+}
+
+/* Pure layout, with blue navigation and orange editorial accents. */
+body, button, input, select, textarea, code, pre, .font-sans {
+  font-family: var(--font-google-sans-code), 'PingFang SC', 'Microsoft YaHei', monospace;
+}
+body { font-size: 16px; line-height: 1.6; letter-spacing: -.02em; }
+body::before {
+  content: ''; position: absolute; inset: 0 0 auto; height: 3px;
+  background: linear-gradient(90deg, hsl(var(--primary)) 0 72%, hsl(var(--accent)) 72%);
+}
+#highlight-gradient {
+  height: 620px; opacity: 1;
+  background-image: radial-gradient(ellipse at 12% 0%, hsl(var(--primary) / .085), transparent 65%),
+    radial-gradient(ellipse at 95% 5%, hsl(var(--accent) / .10), transparent 55%) !important;
+}
+#main-container { position: relative; }
+header-component > a { color: hsl(var(--primary)); letter-spacing: -.04em; }
+#headerExpandContent a { position: relative; }
+#headerExpandContent a[aria-current='page'] { color: hsl(var(--primary)); }
+#headerExpandContent a[aria-current='page']::after {
+  content: ''; height: 3px; border-radius: 2px; position: absolute;
+  bottom: 0; left: .8rem; right: .8rem; background: hsl(var(--accent));
+}
+#toggleDarkMode { color: hsl(var(--accent-ink)); background: hsl(var(--orange-surface)); border-color: hsl(var(--accent) / .2); }
+#content-header h1 { color: hsl(var(--foreground)); text-wrap: balance; letter-spacing: -.04em; }
+#content-header > img { border-color: hsl(var(--primary) / .3); box-shadow: 7px 7px 0 hsl(var(--orange-surface)); }
+.home-search-link { color: hsl(var(--primary)); border-color: hsl(var(--primary) / .2); background: hsl(var(--blue-surface)); }
+.home-search-link:hover { background: hsl(var(--primary)); color: white; }
+.home-search-link kbd { font-size: .8rem; opacity: .65; }
+#content > section > div:first-child > h2 { color: hsl(var(--primary)); }
+#content > section:nth-of-type(even) > div:first-child > h2 { color: hsl(var(--accent-ink)); }
+.post-preview > a { border-color: hsl(var(--primary) / .16); }
+.post-preview:nth-child(even) > a { border-color: hsl(var(--accent) / .25); }
+.post-preview > a > div > div:first-of-type { color: hsl(var(--primary)); }
+.post-preview time { color: hsl(var(--muted-foreground)); }
+.tag-list a, #sidebar a[href^='/tags/'], .article-info a[href^='/tags/'] {
+  color: hsl(var(--accent-ink)); background: hsl(var(--orange-surface));
+  border-color: hsl(var(--accent) / .25);
+}
+.article-info a[href^='/tags/'] { border-radius: 5px; padding: 3px 7px; }
+.article-info > div:first-child { font-size: .8125rem; }
+.article-info > div:last-child { font-style: normal; }
+.article-info blockquote { font-size: .9375rem; line-height: 1.8; }
+.article-info q::before, .article-info q::after { content: ''; }
+.hero-image #blurImage { display: none; }
+.hero-image .cover-image { max-width: 100%; box-shadow: 0 8px 24px hsl(var(--primary) / .08); border: 1px solid hsl(var(--border)); }
+.article-info + div { width: 4rem; border-top: 3px solid hsl(var(--accent)); }
+.prose { overflow-wrap: anywhere; line-height: 1.75; letter-spacing: -.012em; }
+.prose h1 { font-size: 1.75rem; }
+.prose h2 { font-size: 1.4rem; }
+.prose h1, .prose h2, .prose h3 { line-height: 1.5; scroll-margin-top: 6rem; }
+.prose h1, .prose h2 { color: hsl(var(--foreground)); }
+.prose a { color: hsl(var(--primary)); text-decoration-color: hsl(var(--primary) / .35); text-underline-offset: 4px; }
+.prose a:hover { color: hsl(var(--accent-ink)); }
+.prose :not(pre) > code { color: hsl(var(--accent-ink)); background: hsl(var(--orange-surface)); border-color: hsl(var(--accent) / .15); }
+.prose blockquote { font-style: normal; background: hsl(var(--blue-surface)); border-inline-start: 3px solid hsl(var(--primary)); box-shadow: none; }
+.prose blockquote::after { display: none; }
+.prose table { display: block; overflow-x: auto; max-width: 100%; }
+.prose thead { background: hsl(var(--blue-surface)); }
+toc-heading > h2 { font-size: .875rem; color: hsl(var(--accent-ink)); letter-spacing: .04em; }
+toc-heading .toc-item { font-size: .875rem; line-height: 1.65; padding-block: .38rem; }
+#sidebar .highlight { color: hsl(var(--primary)) !important; }
+#sidebar .highlight-bg-translucent { background: hsl(var(--blue-surface)) !important; border-radius: .5rem; }
+#sidebar .highlight-bg { background: hsl(var(--accent)) !important; }
+:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 4px; }
+::selection { color: hsl(var(--foreground)); background: hsl(var(--accent) / .25); }
+@media (max-width: 640px) {
+  #headerExpandContent a[aria-current='page']::after { left: auto; width: 2rem; right: 0; }
+  .prose { font-size: 1rem; }
+  .article-info h1 { font-size: 1.75rem; }
+}
+@media(prefers-reduced-motion:reduce) { .animate { animation:none !important; opacity:1 !important; } }
+
+.prose p { margin-block: 1em; }
+.prose li { margin-block: .25em; }
+.prose h2 { margin-top: 1.6em; margin-bottom: .7em; }
+.prose h3 { margin-top: 1.4em; margin-bottom: .6em; }
+.prose ul, .prose ol { margin-block: .8em; }
+code, pre { letter-spacing: 0; }
+.profile-focus { line-height: 1.65; }
+#content > section > div:last-child { row-gap: .5rem; }

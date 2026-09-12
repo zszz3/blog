@@ -1,4 +1,4 @@
-name: wojiecihuo-blog
+name: wojjiecihuo-blog
 services:
   blog:
     image: caddy:2
@@ -9,7 +9,7 @@ services:
       - "443:443/udp"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - ../dist:/srv:ro
+      - ../site:/srv:ro
       - caddy_data:/data
       - caddy_config:/config
 volumes:

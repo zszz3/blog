@@ -1,0 +1,51 @@
+---
+import links from '@/public/links.json'
+import config from 'virtual:config'
+
+import { Collapse, Timeline } from 'astro-pure/user'
+import PageLayout from '@/layouts/CommonPage.astro'
+import FriendList from '@/components/links/FriendList.astro'
+
+const headings = [
+  { depth: 2, slug: 'common-links', text: '朋友们' },
+  { depth: 2, slug: 'special-links', text: '特别链接' },
+  { depth: 2, slug: 'apply-links', text: '本站信息' }
+]
+
+const { friends } = links
+const linksConf = config.integ.links
+---
+
+<PageLayout title='友链' {headings}>
+  <p>收藏喜欢的个人站点，也期待认识新的朋友。</p>
+  <h2 id='common-links'>朋友们</h2>
+  <FriendList list={friends[0]} />
+  <Collapse title='暂时无法访问'>
+    <FriendList list={friends[1]} />
+  </Collapse>
+  <Collapse title='友链记录'>
+    <Timeline events={linksConf.logbook} />
+  </Collapse>
+  <h2 id='special-links'>特别链接</h2>
+  <FriendList list={friends[2]} />
+
+  <h2 id='apply-links'>本站信息</h2>
+  <p>本站信息（点击复制）：</p>
+  <blockquote class='not-prose grid grid-cols-[auto_1fr] gap-x-2 break-words border-s-4 ps-4'>
+    {
+      linksConf.applyTip.map(({ name, val }) => {
+        const script = `navigator.clipboard.writeText('${val}');document.dispatchEvent(new CustomEvent('toast',{detail:{message:'Copied "${val}" to clipboard!'}}))`
+        return (
+          <>
+            <span class='text-end'>{name}:</span>
+            <samp class='cursor-pointer' onclick={script}>
+              {val}
+            </samp>
+          </>
+        )
+      })
+    }
+  </blockquote>
+
+  <p>友链资料整理中。</p>
+</PageLayout>

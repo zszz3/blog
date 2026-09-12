@@ -1,0 +1,19 @@
+{
+  "friends": [
+    {
+      "id_name": "friends",
+      "desc": "",
+      "link_list": []
+    },
+    {
+      "id_name": "unavailable",
+      "desc": "",
+      "link_list": []
+    },
+    {
+      "id_name": "special",
+      "desc": "",
+      "link_list": []
+    }
+  ]
+}
