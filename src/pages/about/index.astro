@@ -1,12 +1,83 @@
 ---
-import { Button, Timeline } from 'astro-pure/user'
-import PageLayout from '@/layouts/CommonPage.astro'
-const headings=[{depth:2,slug:'about-blog',text:'关于博客'}]
+import { Image } from 'astro:assets'
+import PageLayout from '@/layouts/BaseLayout.astro'
+import avatar from '@/assets/avatar.jpg'
 ---
-<PageLayout title='关于我' {headings}>
-  <h2 id='about-blog'>关于博客</h2>
-  <p>在这里保存技术笔记、项目记录和日常想法。</p>
-  <Timeline events={[{date:'2026-09-12',content:'迁移到 Astro Theme Pure，保留原有文章，增加文档、项目和友链页面。'}]} />
-  <p>使用 <a href='https://astro.build' target='_blank'>Astro</a> 与 <a href='https://github.com/cworld1/astro-theme-pure' target='_blank'>Astro Theme Pure</a>，感谢开源作者。</p>
-  <Button title='订阅 RSS' href='/rss.xml' variant='ahead' />
+
+<PageLayout meta={{ title: '关于我', description: 'Southeast University · Backend · Agent Harness · ASI · 3D Gaussian Splatting' }}>
+  <main class='about-page animate'>
+    <header class='about-intro'>
+      <div>
+        <h1>关于我</h1>
+        <p class='about-school'>Southeast University</p>
+      </div>
+      <Image src={avatar} alt='个人头像' class='about-avatar' width={88} height={88} loading='eager' />
+    </header>
+
+    <p class='about-lead'>关注后端开发与 Agent Harness，也对 ASI 和 3D Gaussian Splatting 保持好奇。</p>
+
+    <section aria-labelledby='interests'>
+      <h2 id='interests'>我在关注</h2>
+      <p>喜欢从具体问题出发，把概念放回实际场景里理解。比起只记住一个结论，更想弄清楚它如何工作、为什么这样设计。</p>
+      <ul class='about-topics' aria-label='关注方向'>
+        <li>Backend</li>
+        <li>Agent Harness</li>
+        <li>ASI</li>
+        <li>3D Gaussian Splatting</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby='current-project'>
+      <h2 id='current-project'>我在做</h2>
+      <div class='about-project-heading'>
+        <h3>AgentRecall</h3>
+        <span class='about-role'>Author</span>
+      </div>
+      <p>Agent 资产层：搜索、管理 AI Coding Agent 会话、Skill、Memory。</p>
+      <a class='about-link' href='https://github.com/zszz3/AgentRecall' target='_blank' rel='noopener noreferrer'>
+        <span>https://github.com/zszz3/AgentRecall</span><span aria-hidden='true'>↗</span>
+      </a>
+    </section>
+
+    <section aria-labelledby='beyond-code'>
+      <h2 id='beyond-code'>技术之外</h2>
+      <p>也想给技术之外的生活留一点空间，写写日常里的观察、偶然出现的想法，以及值得记住的小事。</p>
+    </section>
+
+    <section class='about-contact' aria-labelledby='find-me'>
+      <h2 id='find-me'>找到我</h2>
+      <a class='about-link' href='https://github.com/zszz3' target='_blank' rel='noopener noreferrer'>
+        <span>https://github.com/zszz3</span><span aria-hidden='true'>↗</span>
+      </a>
+    </section>
+  </main>
 </PageLayout>
+
+<style>
+  .about-page { width: 100%; max-width: 46rem; margin: 0 auto; padding: .5rem 0 2rem; }
+  .about-intro { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
+  .about-intro h1 { margin: 0; color: hsl(var(--primary)); font-size: 2rem; font-weight: 600; line-height: 1.4; }
+  .about-school { margin: .6rem 0 0; color: hsl(var(--muted-foreground)); font-size: .9375rem; }
+  .about-avatar { flex-shrink: 0; width: 5.5rem; height: 5.5rem; object-fit: cover; border-radius: 50%; border: 1px solid hsl(var(--primary) / .2); box-shadow: 5px 5px 0 hsl(var(--orange-surface)); }
+  .about-lead { margin: 1.75rem 0 0; max-width: 39rem; color: hsl(var(--foreground)); font-size: 1.125rem; line-height: 1.9; text-wrap: pretty; }
+  section { margin-top: 2.75rem; }
+  section h2 { margin: 0 0 .9rem; color: hsl(var(--primary)); font-size: 1.2rem; font-weight: 600; line-height: 1.5; }
+  section p { margin: .75rem 0; color: hsl(var(--muted-foreground)); font-size: 1rem; line-height: 1.9; }
+  .about-topics { display: flex; flex-wrap: wrap; gap: .5rem 1.15rem; margin: 1rem 0 0; padding: 0; list-style: none; color: hsl(var(--accent-ink)); font-size: .9375rem; }
+  .about-project-heading { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; }
+  .about-project-heading h3 { margin: 0; font-size: 1.125rem; font-weight: 600; }
+  .about-role { border-radius: .375rem; background: hsl(var(--orange-surface)); color: hsl(var(--accent-ink)); padding: .1rem .5rem; font-size: .875rem; }
+  .about-link { display: inline-flex; align-items: center; gap: .5rem; max-width: 100%; min-height: 2.75rem; color: hsl(var(--primary)); font-size: .9375rem; text-decoration: underline; text-decoration-color: hsl(var(--primary) / .3); text-underline-offset: 4px; }
+  .about-link span:first-child { min-width: 0; overflow-wrap: anywhere; }
+  .about-link span:last-child { flex-shrink: 0; }
+  .about-link:hover { color: hsl(var(--accent-ink)); text-decoration-color: currentColor; }
+  .about-contact { padding-top: 1.5rem; border-top: 1px solid hsl(var(--border)); }
+  .about-contact h2 { margin-bottom: .25rem; }
+  @media (max-width: 480px) {
+    .about-intro h1 { font-size: 1.75rem; }
+    .about-avatar { width: 4.5rem; height: 4.5rem; }
+    .about-school { font-size: .875rem; }
+    .about-lead { font-size: 1rem; }
+    section { margin-top: 2.25rem; }
+  }
+</style>
