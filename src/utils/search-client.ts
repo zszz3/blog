@@ -74,7 +74,7 @@ function card(data:ResultData) {
   for(const sub of (data.sub_results||[]).filter(sub => sub.url.includes('#')).slice(0,3)) {
     if(seen.has(sub.url))continue;seen.add(sub.url)
     const a=document.createElement('a');a.className='search-subresult';a.href=siteUrl(sub.url)
-    const title=document.createElement('strong');title.textContent=sub.title
+    const title=document.createElement('strong');title.textContent=sub.title.replace(/\s*#$/,'')
     const text=document.createElement('p');safeHighlight(text,sub.excerpt);a.append(title,text);article.append(a)
   }
   return article
