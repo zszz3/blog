@@ -8,8 +8,7 @@ import FriendList from '@/components/links/FriendList.astro'
 
 const headings = [
   { depth: 2, slug: 'common-links', text: '朋友们' },
-  { depth: 2, slug: 'special-links', text: '特别链接' },
-  { depth: 2, slug: 'apply-links', text: '本站信息' }
+  { depth: 2, slug: 'special-links', text: '特别链接' }
 ]
 
 const { friends } = links
@@ -29,23 +28,4 @@ const linksConf = config.integ.links
   <h2 id='special-links'>特别链接</h2>
   <FriendList list={friends[2]} />
 
-  <h2 id='apply-links'>本站信息</h2>
-  <p>本站信息（点击复制）：</p>
-  <blockquote class='not-prose grid grid-cols-[auto_1fr] gap-x-2 break-words border-s-4 ps-4'>
-    {
-      linksConf.applyTip.map(({ name, val }) => {
-        const script = `navigator.clipboard.writeText('${val}');document.dispatchEvent(new CustomEvent('toast',{detail:{message:'Copied "${val}" to clipboard!'}}))`
-        return (
-          <>
-            <span class='text-end'>{name}:</span>
-            <samp class='cursor-pointer' onclick={script}>
-              {val}
-            </samp>
-          </>
-        )
-      })
-    }
-  </blockquote>
-
-  <p>友链资料整理中。</p>
 </PageLayout>
