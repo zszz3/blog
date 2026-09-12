@@ -28,7 +28,7 @@ const posts = (await getArticles('blog')).slice(0, 6)
       <Section title='项目与归档'>
         <div class='grid grid-cols-1 gap-3 sm:grid-cols-2'>
           <ProjectCard href='/projects' heading='AgentRecall' subheading='Author · Agent 资产层' imagePath='/src/assets/projects/1.avif' />
-          <ProjectCard href='/archives' heading='文章归档' subheading='按标签、分类与年份查阅文章' imagePath='/src/assets/projects/4.avif' />
+          <ProjectCard href='/archives' heading='文章归档' subheading='按时间查阅文章' imagePath='/src/assets/projects/4.avif' />
         </div>
         <Button title='全部项目' class='w-fit self-end' href='/projects' variant='ahead' />
       </Section>
