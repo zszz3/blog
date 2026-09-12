@@ -160,7 +160,8 @@ String str4 = str1 + str2 + str3;
 ```
 
 上面的代码对应的字节码如下：
-![](https://oss.javaguide.cn/github/javaguide/java/image-20220422161637929.png)
+<!-- 图片原始来源：https://oss.javaguide.cn/github/javaguide/java/image-20220422161637929.png -->
+![](./images/image-20220422161637929.png)
 
 可以看出，字符串对象通过“+”的字符串拼接方式，实际上是通过 `StringBuilder` 调用 `append()` 方法实现的，拼接完成之后调用 `toString()` 得到一个 `String` 对象 。
 
@@ -184,7 +185,8 @@ for (String value : arr) {
 }
 System.out.println(s);
 ```
-![](https://oss.javaguide.cn/github/javaguide/java/image-20220422162327415.png)
+<!-- 图片原始来源：https://oss.javaguide.cn/github/javaguide/java/image-20220422162327415.png -->
+![](./images/image-20220422162327415.png)
 
 ## String#equals() 和 Object#equals() 有何区别？
 `String` 中的 `equals` 方法是被重写过的，比较的是 String 字符串的值是否相等。 `Object` 的 `equals` 方法是比较的对象的内存地址。
