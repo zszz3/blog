@@ -28,6 +28,8 @@ import { remarkReadingTime } from "./src/plugins/remark-reading-time.mjs";
 export default defineConfig({
 	site: process.env.SITE_URL || "https://zszz3.github.io",
 	base: process.env.SITE_BASE || (process.env.SITE_URL ? "/" : "/blog"),
+	// Keep Markdown asset URLs from the /blog/ preview out of root-domain builds.
+	cacheDir: process.env.SITE_URL ? "./node_modules/.astro-custom-domain/" : "./node_modules/.astro/",
 	trailingSlash: "always",
 	integrations: [
 		tailwind({
