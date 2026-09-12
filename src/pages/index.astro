@@ -6,7 +6,6 @@ import { Button, Icon, Label, Card } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import ProjectCard from '@/components/home/ProjectCard.astro'
 import Section from '@/components/home/Section.astro'
-import SkillLayout from '@/components/home/SkillLayout.astro'
 import avatar from '@/assets/avatar.jpg'
 import config from '@/site-config'
 const posts = (await getArticles('blog')).slice(0, 6)
@@ -43,11 +42,6 @@ const posts = (await getArticles('blog')).slice(0, 6)
           <ProjectCard href='/docs' heading='系列文档' subheading='按系列与章节查阅学习笔记' imagePath='/src/assets/projects/4.avif' />
         </div>
         <Button title='全部项目' class='w-fit self-end' href='/projects' variant='ahead' />
-      </Section>
-      <Section title='技术方向'>
-        <SkillLayout title='主要使用' skills={['Java']} />
-        <SkillLayout title='了解与学习' skills={['C++', 'Python', '3DGS']} />
-        <SkillLayout title='感兴趣' skills={['Agent']} />
       </Section>
     </div>
   </main>
