@@ -10,19 +10,12 @@ const allPostsByYear = groupArticlesByYear(allPosts)
 
 <PageLayout meta={{ title: '归档', description: '按时间查阅全部文章。' }}>
   <main class='mt-6 lg:mt-10'>
-    <div id='content-header' class='animate'>
-      <h1 class='mb-6 text-3xl font-medium'>归档</h1>
-    </div>
     <div id='content' class='animate'>
       <section class='archive-page' aria-label='文章归档'>
-        <p class='archive-summary'>共 {allPosts.length} 篇文章</p>
         {allPosts.length === 0 && <p class='archive-empty'>还没有文章。</p>}
         {allPostsByYear.map(([year, posts]) => (
           <section class='archive-year' aria-labelledby={`archive-year-${year}`}>
-            <div class='archive-year-heading'>
-              <h2 id={`archive-year-${year}`}>{year}</h2>
-              <span>{posts.length} 篇</span>
-            </div>
+            <h2 id={`archive-year-${year}`} class='archive-year-heading'>{year}</h2>
             <ul>
               {posts.map(post => (
                 <li class='archive-post'>
@@ -43,12 +36,9 @@ const allPostsByYear = groupArticlesByYear(allPosts)
 
 <style>
   .archive-page { max-width: 56rem; }
-  .archive-summary { padding-bottom: 1rem; border-bottom: 1px solid hsl(var(--border)); color: hsl(var(--muted-foreground)); font-size: .875rem; }
   .archive-empty { padding-block: 2rem; color: hsl(var(--muted-foreground)); }
-  .archive-year { margin-top: 2rem; }
-  .archive-year-heading { display: flex; align-items: baseline; gap: .75rem; margin-bottom: .5rem; }
-  .archive-year-heading h2 { font-size: 1.25rem; font-weight: 600; }
-  .archive-year-heading > span { color: hsl(var(--muted-foreground)); font-size: .875rem; }
+  .archive-year + .archive-year { margin-top: 2rem; }
+  .archive-year-heading { margin-bottom: .5rem; font-size: 1.25rem; font-weight: 600; }
   .archive-post { padding-block: .875rem; border-bottom: 1px solid hsl(var(--border) / .6); }
   .archive-post-link { display: grid; grid-template-columns: 4rem minmax(0, 1fr) auto; gap: 1rem; align-items: baseline; text-decoration: none; }
   .archive-post-link time { color: hsl(var(--muted-foreground)); font-size: .875rem; }

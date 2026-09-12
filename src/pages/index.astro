@@ -11,7 +11,7 @@ import config from '@/site-config'
 const posts = (await getArticles('blog')).slice(0, 6)
 ---
 <PageLayout meta={{ title: '首页' }} highlightColor='#dbe9ff'>
-  <main class='flex w-full flex-col items-center'>
+  <main class='-mt-4 flex w-full flex-col items-center'>
     <section class='animate mb-10 flex flex-col items-center gap-y-7' id='content-header'>
       <Image src={avatar} alt='我借此火的头像' class='h-28 w-28 object-cover rounded-full border p-1' loading='eager' fetchpriority='high' />
       <h1 class='text-3xl font-medium'>{config.author}</h1>
