@@ -1,0 +1,42 @@
+---
+import type { MarkdownHeading } from "astro";
+import { Icon } from "astro-icon/components";
+import { getSortedPosts, getCategoryList, getTagList } from "../../utils/content-utils";
+import { getPostUrlBySlug, url } from "../../utils/url-utils";
+import { formatDateToYYYYMMDD } from "../../utils/date-utils";
+import { siteConfig } from "../../config";
+interface Props { headings?: MarkdownHeading[] }
+const { headings = [] } = Astro.props;
+const posts = await getSortedPosts();
+const categories = await getCategoryList();
+const tags = await getTagList();
+const words = posts.reduce((sum, post) => sum + (post.body.match(/[\u3400-\u9fff]|[a-zA-Z0-9]+/g)?.length || 0), 0);
+const toc = headings.filter(h => h.depth <= siteConfig.toc.depth);
+const statistics = [
+    { name: "文章", value: posts.length, icon: "article-outline-rounded" },
+    { name: "分类", value: categories.length, icon: "folder-outline-rounded" },
+    { name: "标签", value: tags.length, icon: "sell-outline" },
+    { name: "累计字数", value: words.toLocaleString("zh-CN"), icon: "notes-rounded" },
+];
+---
+<aside class="right-sidebar sidebar-stack" aria-label="站点信息">
+    {toc.length > 0 && siteConfig.toc.enable ? <nav class="surface widget toc-widget" aria-label="文章目录">
+        <h2 class="widget-title">文章目录<Icon name="material-symbols:format-list-bulleted-rounded" /></h2>
+        <ol>{toc.map(h => <li class={`depth-${h.depth}`}><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+    </nav> : <>
+        <section class="surface widget">
+            <h2 class="widget-title">最近更新<Icon name="material-symbols:history-rounded" /></h2>
+            <div class="recent-posts">{posts.slice(0, 3).map(post => <a href={getPostUrlBySlug(post.slug)}><time datetime={post.data.published.toISOString()}>{formatDateToYYYYMMDD(post.data.published)}</time><span>{post.data.title}</span></a>)}</div>
+            <a class="small-link" href={url("/archive/")}>全部文章 <Icon name="material-symbols:arrow-forward-rounded" /></a>
+        </section>
+        <section class="surface widget">
+            <h2 class="widget-title">站点统计<Icon name="material-symbols:bar-chart-rounded" /></h2>
+            <dl class="site-stat-list">{statistics.map(item => <div><dt><Icon name={`material-symbols:${item.icon}`} />{item.name}</dt><dd>{item.value}</dd></div>)}</dl>
+        </section>
+        <section class="surface widget">
+            <h2 class="widget-title">保持联系<Icon name="material-symbols:rss-feed-rounded" /></h2>
+            <p>用 RSS 订阅，下一篇文章见。</p>
+            <a class="small-link" href={url("/rss.xml")}>订阅博客 <Icon name="material-symbols:arrow-outward-rounded" /></a>
+        </section>
+    </>}
+</aside>

@@ -1,0 +1,13 @@
+---
+import MainGridLayout from "../layouts/MainGridLayout.astro";
+import { url } from "../utils/url-utils";
+---
+<MainGridLayout title="页面未找到">
+    <meta slot="head" name="robots" content="noindex" />
+    <section class="surface p-8 md:p-12">
+        <p class="text-[var(--accent)] text-sm mb-3">404</p>
+        <h1 class="text-3xl font-bold mb-4">这页还没有留下足迹。</h1>
+        <p class="text-[var(--muted)] mb-7">链接可能已变更，回到首页看看其他文章吧。</p>
+        <a href={url("/")} class="inline-flex rounded-lg bg-[var(--soft)] text-[var(--accent)] px-5 py-3">返回首页 →</a>
+    </section>
+</MainGridLayout>

@@ -26,8 +26,8 @@ import { remarkReadingTime } from "./src/plugins/remark-reading-time.mjs";
 
 // https://astro.build/config
 export default defineConfig({
-	site: "https://zszz3.github.io",
-	base: "/blog",
+	site: process.env.SITE_URL || "https://zszz3.github.io",
+	base: process.env.SITE_BASE || (process.env.SITE_URL ? "/" : "/blog"),
 	trailingSlash: "always",
 	integrations: [
 		tailwind({
@@ -38,7 +38,7 @@ export default defineConfig({
 			animationClass: "transition-swup-", // see https://swup.js.org/options/#animationselector
 			// the default value `transition-` cause transition delay
 			// when the Tailwind class `transition-all` is used
-			containers: ["main", "#toc"],
+			containers: ["#site-content"],
 			smoothScrolling: true,
 			cache: true,
 			preload: true,

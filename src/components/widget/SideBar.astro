@@ -1,22 +1,14 @@
 ---
-import type { MarkdownHeading } from "astro";
-import Categories from "./Categories.astro";
+import { Icon } from "astro-icon/components";
 import Profile from "./Profile.astro";
-import Tag from "./Tags.astro";
-
-interface Props {
-	class?: string;
-	headings?: MarkdownHeading[];
-}
-
-const className = Astro.props.class;
+import { getCategoryList, getTagList } from "../../utils/content-utils";
+import { getTagUrl, url } from "../../utils/url-utils";
+const categories = await getCategoryList();
+const tags = await getTagList();
 ---
-<div id="sidebar" class:list={[className, "w-full"]}>
-    <div class="flex flex-col w-full gap-4 mb-4">
-        <Profile></Profile>
-    </div>
-    <div id="sidebar-sticky" class="transition-all duration-700 flex flex-col w-full gap-4 top-4 sticky top-4">
-        <Categories class="onload-animation" style="animation-delay: 150ms"></Categories>
-        <Tag class="onload-animation" style="animation-delay: 200ms"></Tag>
-    </div>
-</div>
+<aside id="sidebar" class="sidebar-stack" aria-label="作者与文章分类">
+    <Profile />
+    <section class="surface widget"><h2 class="widget-title">你好，欢迎来访<Icon name="material-symbols:waving-hand-outline-rounded" /></h2><p>这里记录技术学习、代码实践，也存放一些日常的念头。</p><a class="small-link" href={url("/about/")}>关于我 <Icon name="material-symbols:arrow-forward-rounded" /></a></section>
+    <section class="surface widget"><h2 class="widget-title">分类<Icon name="material-symbols:folder-outline-rounded" /></h2><div class="widget-list">{categories.map(category => <a href={category.url}><span>{category.name}</span><span class="count">{category.count}</span></a>)}</div></section>
+    <section class="surface widget"><h2 class="widget-title">标签<Icon name="material-symbols:sell-outline" /></h2><div class="tag-cloud">{tags.map(tag => <a class="tag-pill" href={getTagUrl(tag.name)}># {tag.name}</a>)}</div></section>
+</aside>
