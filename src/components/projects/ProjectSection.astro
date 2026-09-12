@@ -1,4 +1,6 @@
 ---
+import { Icon } from 'astro-pure/user'
+
 interface Project {
   name: string
   role: string
@@ -13,88 +15,87 @@ interface Props {
 const { projects } = Astro.props
 ---
 
-<table class='project-list'>
-  <caption class='sr-only'>项目名称、职责、简要介绍与 GitHub 链接</caption>
-  <thead>
-    <tr>
-      <th scope='col'>名字</th>
-      <th scope='col'>职责</th>
-      <th scope='col'>简要介绍</th>
-      <th scope='col'>GitHub</th>
-    </tr>
-  </thead>
-  <tbody>
-    {projects.map(project => (
-      <tr>
-        <th scope='row' class='project-name'>{project.name}</th>
-        <td class='project-role'>{project.role}</td>
-        <td class='project-description'>{project.description}</td>
-        <td class='project-github'>
-          <a href={project.github} target='_blank' rel='noopener noreferrer' aria-label={`${project.name} 的 GitHub 仓库`}>
-            GitHub <span aria-hidden='true'>↗</span>
-          </a>
-        </td>
-      </tr>
-    ))}
-  </tbody>
-</table>
+<div class='project-grid'>
+  {projects.map(project => (
+    <article class='project-card'>
+      <div class='project-heading'>
+        <h2>{project.name}</h2>
+        <span class='project-role'>{project.role}</span>
+      </div>
+      <p class='project-description'>{project.description}</p>
+      <a class='project-link' href={project.github} target='_blank' rel='noopener noreferrer' aria-label={`${project.name} 的 GitHub 仓库`}>
+        <Icon name='github-circle' class='size-5' />
+        <span>GitHub</span>
+        <span class='project-arrow' aria-hidden='true'>↗</span>
+      </a>
+    </article>
+  ))}
+</div>
 
 <style>
-  .project-list {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-    font-size: 1rem;
-    line-height: 1.75;
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 28rem), 1fr));
+    gap: 1.5rem;
   }
-  th, td {
-    padding: 1.25rem 1.5rem 1.25rem 0;
-    border-bottom: 1px solid hsl(var(--border));
-    vertical-align: top;
+  .project-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    padding: 1.5rem;
+    border: 1px solid hsl(var(--primary) / .18);
+    border-radius: 1rem;
+    background: hsl(var(--background) / .8);
+    box-shadow: 0 3px 12px hsl(var(--primary) / .035);
+    transition: border-color .2s, box-shadow .2s;
   }
-  th:last-child, td:last-child { padding-right: 0; }
-  thead th {
-    padding-top: 0;
-    padding-bottom: .75rem;
-    color: hsl(var(--muted-foreground));
-    font-size: .875rem;
-    font-weight: 400;
+  .project-card:hover {
+    border-color: hsl(var(--primary) / .38);
+    box-shadow: 0 5px 20px hsl(var(--primary) / .07);
   }
-  .project-name {
-    width: 20%;
-    font-weight: 600;
+  .project-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .75rem;
+  }
+  .project-heading h2 {
+    margin: 0;
     color: hsl(var(--foreground));
-    white-space: nowrap;
+    font-size: 1.375rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -.025em;
   }
-  .project-role { width: 12%; color: hsl(var(--muted-foreground)); }
-  .project-description { color: hsl(var(--muted-foreground)); }
-  .project-github { width: 13%; white-space: nowrap; }
-  .project-github a {
-    display: inline-block;
+  .project-role {
+    padding: .125rem .5rem;
+    border-radius: .375rem;
+    background: hsl(var(--orange-surface));
+    color: hsl(var(--accent-ink));
+    font-size: .875rem;
+    line-height: 1.5;
+  }
+  .project-description {
+    margin: 1rem 0 1.25rem;
+    color: hsl(var(--muted-foreground));
+    font-size: 1rem;
+    line-height: 1.8;
+    overflow-wrap: break-word;
+  }
+  .project-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    margin-top: auto;
+    min-height: 2.75rem;
     color: hsl(var(--primary));
+    font-size: .9375rem;
     text-decoration: none;
   }
-  .project-github a:hover { text-decoration: underline; text-underline-offset: 4px; }
-  @media (max-width: 700px) {
-    thead {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip-path: inset(50%);
-      white-space: nowrap;
-    }
-    table, tbody { display: block; }
-    tbody tr {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: .5rem 1rem;
-      padding-block: 1.25rem;
-      border-bottom: 1px solid hsl(var(--border));
-    }
-    tbody tr:first-child { padding-top: 0; }
-    th, td { width: auto !important; padding: 0; border: 0; }
-    .project-description, .project-github { grid-column: 1 / -1; }
-    .project-github a { padding-block: .375rem; }
+  .project-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .project-arrow { margin-left: .25rem; font-size: 1.125rem; }
+  @media (max-width: 480px) {
+    .project-card { padding: 1.25rem; }
   }
 </style>
