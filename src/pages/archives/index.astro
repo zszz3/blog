@@ -12,7 +12,7 @@ const allPostsByDate = allPosts
 const allPostsByYear = groupArticlesByYear(allPostsByDate)
 
 const meta = {
-  description: 'A list of all the years of creating my posts',
+  description: '按年份查阅全部文章。',
   title: '归档'
 }
 ---
@@ -27,7 +27,7 @@ const meta = {
 
     {allPosts.length === 0 && <p>还没有文章。</p>}
 
-    <section id='content' class='animate' aria-label='Blog post list'>
+    <section id='content' class='animate' aria-label='文章归档'>
       {
         allPostsByYear.map(([year, posts]) => (
           <div class='relative mt-20'>
@@ -38,7 +38,7 @@ const meta = {
               <samp>{year}</samp>
             </h2>
             <p class='px-5 text-muted-foreground'>
-              {posts.length} post{posts.length > 1 && 's'}
+              {posts.length} 篇文章
             </p>
             <ul class='flex flex-col text-start'>
               {posts.map((p) => (

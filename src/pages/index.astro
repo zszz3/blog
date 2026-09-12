@@ -26,10 +26,10 @@ const posts = (await getArticles('blog')).slice(0, 6)
         <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>{posts.map(post => <PostPreview post={post} />)}</ul>
         <Button title='全部文章' class='w-fit self-end' href='/blog' variant='ahead' />
       </Section>
-      <Section title='项目与文档'>
+      <Section title='项目与归档'>
         <div class='grid grid-cols-1 gap-3 sm:grid-cols-2'>
           <ProjectCard href='/projects' heading='AgentRecall' subheading='Author · Agent 资产层' imagePath='/src/assets/projects/1.avif' />
-          <ProjectCard href='/docs' heading='系列文档' subheading='按系列与章节查阅学习笔记' imagePath='/src/assets/projects/4.avif' />
+          <ProjectCard href='/archives' heading='文章归档' subheading='按年份查阅全部文章' imagePath='/src/assets/projects/4.avif' />
         </div>
         <Button title='全部项目' class='w-fit self-end' href='/projects' variant='ahead' />
       </Section>
