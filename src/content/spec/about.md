@@ -1,10 +1,3 @@
-# 👋 About Me
+# 关于我
 
-## 🎯 主要技能
-- **熟练**：Java  
-- **了解**：C++、Python、3DGS
-- **感兴趣**: Agent
-
-## 📫 联系方式
-- **Email**: wojiecihuo@gmail.com
-- **QQ**: 1421085859
+我借此火-P。追悔莫及之物皆美不胜收。
