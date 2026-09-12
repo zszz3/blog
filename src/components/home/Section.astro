@@ -15,8 +15,7 @@ const { class: className, title, href } = Astro.props
     <h2>
       {href ? (
         <a class='section-heading-link' href={href} aria-label={`查看${title}页面`}>
-          <span>{title}</span>
-          <span class='section-heading-arrow' aria-hidden='true'>→</span>
+          {title}
         </a>
       ) : title}
     </h2>
@@ -30,25 +29,15 @@ const { class: className, title, href } = Astro.props
   .section-heading-link {
     display: inline-flex;
     align-items: center;
-    gap: .5rem;
     color: inherit;
     text-decoration: none;
     border-radius: .25rem;
   }
-  .section-heading-arrow {
-    font-size: 1.125rem;
-    font-weight: 400;
-    opacity: .55;
-    transition: opacity .2s, transform .2s;
-  }
-  .section-heading-link:hover .section-heading-arrow,
-  .section-heading-link:focus-visible .section-heading-arrow {
-    opacity: 1;
-    transform: translateX(3px);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .section-heading-arrow { transition: none; }
-    .section-heading-link:hover .section-heading-arrow,
-    .section-heading-link:focus-visible .section-heading-arrow { transform: none; }
+  .section-heading-link:hover,
+  .section-heading-link:focus-visible {
+    color: hsl(var(--primary));
+    text-decoration: underline;
+    text-decoration-color: hsl(var(--primary) / .35);
+    text-underline-offset: .25em;
   }
 </style>
