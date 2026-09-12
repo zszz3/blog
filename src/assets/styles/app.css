@@ -1,10 +1,10 @@
 /* Theme */
 :root {
   /* Primary */
-  --primary: 214 39% 42%;
+  --primary: 202.3256 100% 33.7255%; /* AstroPaper #006cac */
   --accent: 27 68% 55%;
   --accent-ink: 26 62% 35%;
-  --blue-surface: 217 100% 97%;
+  --blue-surface: 202 100% 97%;
   --orange-surface: 27 100% 95%;
   --warm: 28 100% 95%;
   --warm-foreground: 25 65% 37%;
@@ -24,10 +24,10 @@
 }
 .dark {
   /* Primary */
-  --primary: 214 50% 74%;
+  --primary: 202 70% 72%;
   --accent: 27 74% 69%;
   --accent-ink: 27 100% 73%;
-  --blue-surface: 220 32% 18%;
+  --blue-surface: 202 32% 18%;
   --orange-surface: 24 25% 17%;
   --warm: 28 28% 20%;
   --warm-foreground: 28 83% 75%;
@@ -82,7 +82,8 @@ header-component > a { color: hsl(var(--primary)); letter-spacing: -.04em; }
   bottom: 0; left: .8rem; right: .8rem; background: hsl(var(--accent));
 }
 #toggleDarkMode { color: hsl(var(--accent-ink)); background: hsl(var(--orange-surface)); border-color: hsl(var(--accent) / .2); }
-#content-header h1 { color: hsl(var(--foreground)); text-wrap: balance; letter-spacing: -.04em; }
+#content-header h1 { color: hsl(var(--primary)); text-wrap: balance; letter-spacing: -.04em; }
+.article-info h1 { color: hsl(var(--primary)); }
 #content-header > img { border-color: hsl(var(--primary) / .3); box-shadow: 7px 7px 0 hsl(var(--orange-surface)); }
 .home-search-link { color: hsl(var(--primary)); border-color: hsl(var(--primary) / .2); background: hsl(var(--blue-surface)); }
 .home-search-link:hover { background: hsl(var(--primary)); color: white; }
