@@ -2,7 +2,7 @@
 import { getArticles } from '@/utils/articles'
 import { Image } from 'astro:assets'
 import { PostPreview } from 'astro-pure/components/pages'
-import { Button, Card } from 'astro-pure/user'
+import { Button } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import ProjectCard from '@/components/home/ProjectCard.astro'
 import Section from '@/components/home/Section.astro'
@@ -25,9 +25,6 @@ const posts = (await getArticles('blog')).slice(0, 6)
       <Section title='最近的文章'>
         <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>{posts.map(post => <PostPreview post={post} />)}</ul>
         <Button title='全部文章' class='w-fit self-end' href='/blog' variant='ahead' />
-      </Section>
-      <Section title='学习笔记'>
-        <Card as='a' heading='Java 与数据库' subheading='把概念、例子和容易混淆的地方整理在一起。' href='/tags/八股' date='持续整理' />
       </Section>
       <Section title='项目与文档'>
         <div class='grid grid-cols-1 gap-3 sm:grid-cols-2'>
