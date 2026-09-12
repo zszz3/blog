@@ -11,5 +11,5 @@ const dir=path.resolve('src/content/posts',slug),target=path.join(dir,'index.md'
 try{await access(dir);throw new Error('目录已经存在，请使用新的 slug。')}catch(error){if(error.code!=='ENOENT')throw error}
 await mkdir(dir,{recursive:true})
 const date=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Shanghai'})
-await writeFile(target,`---\ntitle: ${JSON.stringify(title)}\npublished: ${date}\ndescription: ""\nimage: ""\ntags: []\ncategory: ""\ndraft: true\n---\n\n在这里开始写作。\n`,{flag:'wx'})
+await writeFile(target,`---\ntitle: ${JSON.stringify(title)}\npublished: ${date}\ndescription: ""\nimage: ""\ntags: []\ncategory: ""\nviews: [blog]\ndraft: true\n---\n\n在这里开始写作。\n`,{flag:'wx'})
 console.log(`已创建草稿：${path.relative(process.cwd(),target)}\n写完后把 draft 改为 false，再提交到 main 发布。`)

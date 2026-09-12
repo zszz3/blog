@@ -34,6 +34,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Test release switching and rollback
         run: python3 -m unittest discover -s tests -p 'test_*.py'
+      - name: Test article views and chapter ordering
+        run: node --experimental-strip-types --test scripts/article-model.test.mjs
       - name: Build pages, search and RSS
         run: pnpm build
         env:

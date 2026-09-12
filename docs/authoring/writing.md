@@ -28,6 +28,9 @@ description: 一句话介绍这篇文章。
 image: ./example.png
 tags: [Java, 学习笔记]
 category: 技术
+views: [blog, docs]
+series: Java 学习笔记
+order: 1
 draft: false
 ---
 ```
@@ -35,6 +38,18 @@ draft: false
 正文写在第二条 `---` 后面。封面可留空，正文图片写作 `![图片说明](./example.png)`。
 
 未完成时使用 `draft: true`。草稿可以提交到仓库，但不会出现在正式网站、搜索索引或 RSS 中。
+
+## 博客和文档共用文章
+
+两种入口都读取 `src/content/posts/`，不要复制同一篇文章到另一个目录。
+
+- `views: [blog]`：普通博客文章。旧文件不填写 `views` 时默认使用此值。
+- `views: [docs]`：只列入文档目录。
+- `views: [blog, docs]`：博客与文档同时展示。
+
+文档按 `series` 分组，按 `order` 从小到大排序。不填写系列时归入「其他文档」，不填写顺序时默认使用 999。博客按原始发布日期排列。
+
+修改正文、标题、展示位置或章节排序只需改这一份文件。文章地址始终为 `/blog/文章标识`；搜索与站点订阅只收录一次。文档目录和文档订阅指向同一个地址。
 
 ## 本地预览
 

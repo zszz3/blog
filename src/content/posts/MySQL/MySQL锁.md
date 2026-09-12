@@ -6,6 +6,9 @@ image: "./MySQL锁.jpg"
 tags: ["MySQL", "八股"]
 category: 八股
 draft: false 
+views: [blog, docs]
+series: MySQL 学习笔记
+order: 1
 ---
 
 # 全局锁

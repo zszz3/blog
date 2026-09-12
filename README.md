@@ -19,7 +19,27 @@ pnpm dev
 pnpm new-post "文章标题" --slug article-name
 ```
 
-命令生成草稿。编辑后将 `draft` 改为 `false`，提交文章文件夹。首页和归档自动更新，草稿不会进入正式页面、RSS 与搜索结果。
+命令生成草稿。编辑后将 `draft` 改为 `false`，提交文章文件夹。博客按发布时间排列，文档按系列与章节排列。草稿不会进入正式页面、RSS 与搜索结果。
+
+## 一份文章，两个入口
+
+所有文章只放在 `src/content/posts/`，博客和文档不再有两套源文件。
+
+```yaml
+views: [blog, docs]
+series: MySQL 学习笔记
+order: 3
+```
+
+- `views: [blog]`：只在博客列表显示；不填写时默认如此，兼容旧文章。
+- `views: [docs]`：只在文档目录显示。
+- `views: [blog, docs]`：两边展示同一篇文章。
+- `series`：文档的系列名称；未填写时归入「其他文档」。
+- `order`：系列内部的章节顺序，非负整数，越小越靠前；缺省为 999。
+
+所有文章使用唯一的 `/blog/文章标识` 地址。改变 `views`、系列名称、标题或章节顺序不会改变链接；移动源文件或改变目录名会改变链接。全文搜索、标签页和站点 RSS 均只收录一次；文档 RSS 从同一批文章中筛选 `docs`。
+
+操作说明见 [写作指南](docs/authoring/writing.md)。
 
 ## 构建
 
@@ -37,7 +57,9 @@ pnpm preview
 - 首页：`src/pages/index.astro`
 - 关于：`src/pages/about/index.astro`
 - 颜色与排版：`src/assets/styles/app.css`
-- 文档：`src/content/docs/`
+- 全部文章（含博客和文档）：`src/content/posts/`
+- 发文操作说明：`docs/authoring/`
+- 模板参考资料（不发布）：`docs/theme-reference/`
 
 GitHub 自动构建与服务器启用步骤见 [上线指南](docs/上线指南.md)。服务器部署尚需完成首次配置；构建成功不等于正式域名已经发布。
 

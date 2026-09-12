@@ -1,7 +1,7 @@
 interface ResultData { url: string; excerpt: string; meta: {title?:string;date?:string;category?:string;kind?:string}; sub_results?: {url:string;title:string;excerpt:string}[] }
 interface Result { data: () => Promise<ResultData> }
 interface Engine { options: (options:object) => Promise<void>; search: (query:string|null, options:object) => Promise<{results:Result[]}> }
-interface FallbackEntry {title:string;description:string;url:string;body:string;tags:string[];category:string;date:string;kind:string}
+interface FallbackEntry {title:string;description:string;url:string;body:string;tags:string[];category:string;date:string;views:('blog'|'docs')[]}
 const form = document.querySelector<HTMLFormElement>('#search-form')!
 const input = document.querySelector<HTMLInputElement>('#search-input')!
 const status = document.querySelector<HTMLElement>('#search-status')!
@@ -49,7 +49,7 @@ async function fallbackSearch(query:string, filters:Record<string,string>, newes
   fallbackPromise ||= fetch('/search.json').then(r => {if(!r.ok) throw new Error('Search index unavailable');return r.json()})
   const terms=normalized(query).split(/\s+/).filter(Boolean)
   const ranked=(await fallbackPromise).flatMap(entry => {
-    if(Object.entries(filters).some(([key,value]) => key === 'tag' ? !entry.tags.includes(value) : key === 'year' ? !entry.date.startsWith(value) : entry[key as 'kind'|'category'] !== value)) return []
+    if(Object.entries(filters).some(([key,value]) => key === 'tag' ? !entry.tags.includes(value) : key === 'year' ? !entry.date.startsWith(value) : key === 'kind' ? !entry.views.some(view => view === value) : entry.category !== value)) return []
     const full=normalized([entry.title,entry.description,...entry.tags,entry.body].join(' '))
     if(!terms.every(term => full.includes(term))) return []
     const score=terms.reduce((sum,term) => sum+(normalized(entry.title).includes(term)?20:0)+(entry.tags.some(t => normalized(t).includes(term))?8:0)+(normalized(entry.description).includes(term)?4:0),0)
@@ -59,13 +59,13 @@ async function fallbackSearch(query:string, filters:Record<string,string>, newes
     const body=entry.body.replace(/```[^\n]*\n/g,'').replace(/[#*>`]/g,'').replace(/\s+/g,' ')
     const found=terms.map(term => normalized(body).indexOf(term)).filter(i => i>=0)
     const start=Math.max(0,(found.length?Math.min(...found):0)-55)
-    return {url:entry.url,meta:{title:entry.title,date:entry.date,category:entry.category,kind:entry.kind},excerpt:markup((start?'…':'')+body.slice(start,start+230)+'…',query)}
+    return {url:entry.url,meta:{title:entry.title,date:entry.date,category:entry.category,kind:entry.views.join(',')},excerpt:markup((start?'…':'')+body.slice(start,start+230)+'…',query)}
   }}))
 }
 function card(data:ResultData) {
   const article=document.createElement('article');article.className='search-result'
   const meta=document.createElement('div');meta.className='result-meta'
-  const kind=document.createElement('span');kind.className='result-kind';kind.textContent=data.meta.kind==='docs'?'文档':'文章';meta.append(kind)
+  const kind=document.createElement('span');kind.className='result-kind';kind.textContent=(data.meta.kind||'blog').split(',').map(view => view==='docs'?'文档':'文章').join(' · ');meta.append(kind)
   for(const text of [data.meta.category,data.meta.date].filter(Boolean)){const span=document.createElement('span');span.textContent=text!;meta.append(span)}
   const heading=document.createElement('h2'),link=document.createElement('a');link.href=siteUrl(data.url);link.textContent=data.meta.title||'未命名文章';heading.append(link)
   const excerpt=document.createElement('p');safeHighlight(excerpt,data.excerpt)

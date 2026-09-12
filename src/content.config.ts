@@ -2,7 +2,8 @@ import { defineCollection } from 'astro:content'
 import { glob } from 'astro/loaders'
 import { z } from 'astro/zod'
 
-// Read the original article directory and front matter without rewriting the user's files.
+// One article collection for both views. Keep the historical `blog` key and URLs
+// for Astro Pure compatibility; `views` controls where an article is listed.
 const blog = defineCollection({
   loader: glob({
     base: './src/content/posts', pattern: '**/*.{md,mdx}',
@@ -16,7 +17,11 @@ const blog = defineCollection({
     heroImage: z.object({ src: image(), alt: z.string().optional(), color: z.string().optional() }).optional(),
     tags: z.array(z.string()).default([]), category: z.string().nullable().optional(),
     lang: z.string().optional(), language: z.string().optional(),
-    draft: z.boolean().default(false), comment: z.boolean().default(false)
+    draft: z.boolean().default(false), comment: z.boolean().default(false),
+    views: z.array(z.enum(['blog', 'docs'])).min(1).default(['blog'])
+      .transform(views => [...new Set(views)]),
+    series: z.string().trim().min(1).optional(),
+    order: z.number().int().nonnegative().default(999)
   }).refine(data => data.publishDate || data.published, '请填写 published 或 publishDate')
     .transform(data => ({
       ...data, publishDate: (data.publishDate || data.published)!,
@@ -26,12 +31,4 @@ const blog = defineCollection({
       language: data.language || data.lang || 'zh-CN'
     }))
 })
-const docs = defineCollection({
-  loader: glob({ base: './src/content/docs', pattern: '**/*.{md,mdx}' }),
-  schema: () => z.object({
-    title: z.string(), description: z.string().default(''),
-    publishDate: z.coerce.date().optional(), updatedDate: z.coerce.date().optional(),
-    tags: z.array(z.string()).default([]), draft: z.boolean().default(false), order: z.number().default(999)
-  })
-})
-export const collections = { blog, docs }
+export const collections = { blog }

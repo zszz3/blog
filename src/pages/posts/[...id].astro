@@ -1,7 +1,8 @@
 ---
-import { getBlogCollection } from 'astro-pure/server'
+import { getArticles } from '@/utils/articles'
+
 export async function getStaticPaths() {
-  return (await getBlogCollection()).map(post => ({ params: { id: post.id }, props: { id: post.id } }))
+  return (await getArticles()).map(post => ({ params: { id: post.id }, props: { id: post.id } }))
 }
 return Astro.redirect(encodeURI(`/blog/${Astro.props.id}`), 301)
 ---

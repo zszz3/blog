@@ -45,6 +45,8 @@ for file, page in pages.items():
 for forbidden in ['.prerender', 'server']:
     if (root / forbidden).exists(): errors.append(f'Unexpected server intermediate: {forbidden}')
 index = json.loads((root / 'search.json').read_text())
+for url, count in Counter(entry['url'] for entry in index).items():
+    if count > 1: errors.append('Duplicate article in search: ' + url)
 for entry in index:
     candidate = root / unquote(entry['url']).lstrip('/') / 'index.html'
     if not candidate.is_file(): errors.append('Search result has no page: ' + entry['url'])

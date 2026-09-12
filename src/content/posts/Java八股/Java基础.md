@@ -6,6 +6,9 @@ image: ''
 tags: ["Java", "八股"]
 category: 八股
 draft: false
+views: [blog, docs]
+series: Java 学习笔记
+order: 1
 ---
 
 # 1. 数据类型

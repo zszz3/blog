@@ -1,7 +1,7 @@
 ---
+import { getArticles } from '@/utils/articles'
 import { Image } from 'astro:assets'
 import { PostPreview } from 'astro-pure/components/pages'
-import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
 import { Button, Icon, Label, Card } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import ProjectCard from '@/components/home/ProjectCard.astro'
@@ -9,7 +9,7 @@ import Section from '@/components/home/Section.astro'
 import SkillLayout from '@/components/home/SkillLayout.astro'
 import avatar from '@/assets/avatar.jpg'
 import config from '@/site-config'
-const posts = sortMDByDate(await getBlogCollection()).slice(0, 6)
+const posts = (await getArticles('blog')).slice(0, 6)
 ---
 <PageLayout meta={{ title: '首页' }} highlightColor='#dbe9ff'>
   <main class='flex w-full flex-col items-center'>
@@ -40,7 +40,7 @@ const posts = sortMDByDate(await getBlogCollection()).slice(0, 6)
       <Section title='项目与文档'>
         <div class='grid grid-cols-1 gap-3 sm:grid-cols-2'>
           <ProjectCard href='/projects' heading='个人博客' subheading='文章、笔记和站点建设记录' imagePath='/src/assets/projects/1.avif' />
-          <ProjectCard href='/docs' heading='写作与发布' subheading='Markdown 上传、文章发布与模板使用' imagePath='/src/assets/projects/4.avif' />
+          <ProjectCard href='/docs' heading='系列文档' subheading='按系列与章节查阅学习笔记' imagePath='/src/assets/projects/4.avif' />
         </div>
         <Button title='全部项目' class='w-fit self-end' href='/projects' variant='ahead' />
       </Section>
