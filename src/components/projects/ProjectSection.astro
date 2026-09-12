@@ -1,209 +1,100 @@
 ---
-import type { ImageMetadata } from 'astro'
-import { Image } from 'astro:assets'
-
-import type { IconsType } from 'astro-pure/types'
-import { Icon } from 'astro-pure/user'
-import { cn } from 'astro-pure/utils'
-
 interface Project {
-  image?: string
   name: string
-  role?: string
-  tagline?: string
+  role: string
   description: string
-  links: {
-    type: string
-    href: string
-  }[]
+  github: string
 }
 
 interface Props {
-  class?: string
   projects: Project[]
 }
-const { class: className, projects, ...props } = Astro.props
-const images = import.meta.glob<{ default: ImageMetadata }>(
-  '/src/assets/projects/*.{jpeg,jpg,png,gif,avif.webp,webp}'
-)
-const projectIconSet: Record<string, IconsType> = {
-  github: 'github-circle',
-  site: 'earth',
-  doc: 'document',
-  release: 'package'
-}
-const projectLinkLabels: Record<string, string> = {
-  github: 'GitHub',
-  site: '访问网站',
-  doc: '阅读文档',
-  release: '下载'
-}
+
+const { projects } = Astro.props
 ---
 
-<div class={cn('project-list not-prose', className)} {...props}>
-    {
-      projects.map((project) => {
-        var imagePath = null
-        if (project.image) {
-          imagePath = '/src/assets/projects/' + project.image
-          if (!images[imagePath])
-            throw new Error(
-              `"${imagePath}" does not exist in glob: "src/assets/projects/*.{jpeg,jpg,png,gif,avif,webp}"`
-            )
-        }
-
-        return (
-          <article class='project-entry'>
-            {imagePath && (
-              <Image
-                class='project-image'
-                src={images[imagePath]()}
-                alt={project.name}
-                loading='lazy'
-              />
-            )}
-            <div class='project-content'>
-              <div class='project-heading'>
-                <h3 class='project-title'>
-                  <a href={project.links[0].href} target='_blank' rel='noopener noreferrer'>
-                    {project.name}
-                  </a>
-                </h3>
-                {project.role && <span class='project-role'>{project.role}</span>}
-              </div>
-              <div class='project-summary'>
-                {project.tagline && <p class='project-tagline'>{project.tagline}</p>}
-                <p class='project-description'>{project.description}</p>
-              </div>
-              <div class='project-links'>
-                {project.links.map((link) => {
-                  const icon = projectIconSet[link.type]
-                  return (
-                    <a
-                      href={link.href}
-                      class='project-link'
-                      aria-label={`${project.name} · ${projectLinkLabels[link.type] ?? link.type}`}
-                      target='_blank'
-                      rel='noopener noreferrer'
-                    >
-                      <Icon class='size-4' name={icon} />
-                      <span>{projectLinkLabels[link.type] ?? link.type}</span>
-                      <span aria-hidden='true' class='project-link-arrow'>↗</span>
-                    </a>
-                  )
-                })}
-              </div>
-            </div>
-          </article>
-        )
-      })
-    }
-</div>
+<table class='project-list'>
+  <caption class='sr-only'>项目名称、职责、简要介绍与 GitHub 链接</caption>
+  <thead>
+    <tr>
+      <th scope='col'>名字</th>
+      <th scope='col'>职责</th>
+      <th scope='col'>简要介绍</th>
+      <th scope='col'>GitHub</th>
+    </tr>
+  </thead>
+  <tbody>
+    {projects.map(project => (
+      <tr>
+        <th scope='row' class='project-name'>{project.name}</th>
+        <td class='project-role'>{project.role}</td>
+        <td class='project-description'>{project.description}</td>
+        <td class='project-github'>
+          <a href={project.github} target='_blank' rel='noopener noreferrer' aria-label={`${project.name} 的 GitHub 仓库`}>
+            GitHub <span aria-hidden='true'>↗</span>
+          </a>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
 
 <style>
   .project-list {
     width: 100%;
-  }
-  .project-entry {
-    display: flex;
-    gap: 1.25rem;
-    padding: 1.75rem 0;
-    border-block: 1px solid hsl(var(--border));
-  }
-  .project-entry + .project-entry {
-    border-top: 0;
-  }
-  .project-content {
-    flex: 1;
-    min-width: 0;
-  }
-  .project-heading {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: .75rem;
-  }
-  .project-title {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 650;
-    line-height: 1.35;
-    letter-spacing: -.04em;
-  }
-  .project-title a {
-    color: hsl(var(--primary));
-    text-decoration: none;
-  }
-  .project-title a:hover {
-    color: hsl(var(--accent-ink));
-  }
-  .project-role {
-    flex-shrink: 0;
-    border-radius: 5px;
-    padding: .125rem .5rem;
-    font-size: .875rem;
-    color: hsl(var(--accent-ink));
-    background: hsl(var(--orange-surface));
-  }
-  .project-summary {
-    margin-top: 1rem;
-  }
-  .project-tagline {
-    margin: 0 0 .25rem;
-    color: hsl(var(--foreground));
+    border-collapse: collapse;
+    text-align: left;
     font-size: 1rem;
-    font-weight: 600;
-    line-height: 1.7;
+    line-height: 1.75;
   }
-  .project-description {
-    margin: 0;
-    max-width: 38rem;
+  th, td {
+    padding: 1.25rem 1.5rem 1.25rem 0;
+    border-bottom: 1px solid hsl(var(--border));
+    vertical-align: top;
+  }
+  th:last-child, td:last-child { padding-right: 0; }
+  thead th {
+    padding-top: 0;
+    padding-bottom: .75rem;
     color: hsl(var(--muted-foreground));
-    font-size: 1rem;
-    line-height: 1.8;
-    overflow-wrap: break-word;
-  }
-  .project-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .75rem;
-    margin-top: 1.25rem;
-  }
-  .project-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: .5rem;
-    min-height: 2.75rem;
-    padding: .45rem .875rem;
-    border: 1px solid hsl(var(--primary) / .2);
-    border-radius: .5rem;
-    color: hsl(var(--primary));
-    background: hsl(var(--blue-surface));
     font-size: .875rem;
-    text-decoration: none;
-    transition: background-color .2s, border-color .2s;
+    font-weight: 400;
   }
-  .project-link:hover {
+  .project-name {
+    width: 20%;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    white-space: nowrap;
+  }
+  .project-role { width: 12%; color: hsl(var(--muted-foreground)); }
+  .project-description { color: hsl(var(--muted-foreground)); }
+  .project-github { width: 13%; white-space: nowrap; }
+  .project-github a {
+    display: inline-block;
     color: hsl(var(--primary));
-    background: hsl(var(--primary) / .1);
-    border-color: hsl(var(--primary) / .45);
+    text-decoration: none;
   }
-  .project-link-arrow {
-    margin-left: .25rem;
-    font-size: 1.125rem;
-    line-height: 1;
-  }
-  .project-image {
-    margin: 0;
-    width: 4rem;
-    height: 4rem;
-    flex-shrink: 0;
-    border-radius: .75rem;
-    object-fit: cover;
-  }
-  @media (max-width: 480px) {
-    .project-entry { padding-block: 1.5rem; }
-    .project-entry:has(.project-image) { flex-direction: column; }
+  .project-github a:hover { text-decoration: underline; text-underline-offset: 4px; }
+  @media (max-width: 700px) {
+    thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    table, tbody { display: block; }
+    tbody tr {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: .5rem 1rem;
+      padding-block: 1.25rem;
+      border-bottom: 1px solid hsl(var(--border));
+    }
+    tbody tr:first-child { padding-top: 0; }
+    th, td { width: auto !important; padding: 0; border: 0; }
+    .project-description, .project-github { grid-column: 1 / -1; }
+    .project-github a { padding-block: .375rem; }
   }
 </style>

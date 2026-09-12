@@ -1,14 +1,19 @@
 ---
-import { Button, Collapse } from 'astro-pure/user'
-import PageLayout from '@/layouts/CommonPage.astro'
+import PageLayout from '@/layouts/BaseLayout.astro'
 import ProjectSection from '@/components/projects/ProjectSection.astro'
-const headings = [{depth:2,slug:'projects',text:'项目'},{depth:2,slug:'more',text:'更多项目'}]
 ---
-<PageLayout title='项目' {headings}>
-  <p>这里整理做过的项目。</p>
-  <h2 id='projects'>项目</h2>
-  <ProjectSection projects={[{name:'AgentRecall',role:'Author',tagline:'Agent 资产层',description:'搜索、管理 AI Coding Agent 会话、Skill、Memory。',links:[{type:'github',href:'https://github.com/zszz3/AgentRecall'}]}]} />
-  <h2 id='more'>更多项目</h2>
-  <Collapse title='后续补充'>其他项目还在整理，更新后会放在这里。</Collapse>
-  <Button title='访问 GitHub' href='https://github.com/zszz3' target='_blank' variant='ahead' />
+<PageLayout meta={{ title: '项目' }}>
+  <main class='w-full'>
+    <div id='content-header' class='animate mb-10'>
+      <h1 class='text-3xl font-medium'>项目</h1>
+    </div>
+    <div id='content' class='animate'>
+      <ProjectSection projects={[{
+        name: 'AgentRecall',
+        role: 'Author',
+        description: 'Agent 资产层：搜索、管理 AI Coding Agent 会话、Skill、Memory。',
+        github: 'https://github.com/zszz3/AgentRecall'
+      }]} />
+    </div>
+  </main>
 </PageLayout>
