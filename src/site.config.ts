@@ -1,4 +1,5 @@
 import type { Config, IntegrationUserConfig, ThemeUserConfig } from 'astro-pure/types'
+import { navigation } from './navigation'
 
 export const theme: ThemeUserConfig = {
   // [Basic]
@@ -47,13 +48,7 @@ export const theme: ThemeUserConfig = {
 
   /** Configure the header of your site. */
   header: {
-    menu: [
-      { title: '博客', link: '/blog' },
-      { title: '归档', link: '/archives' },
-      { title: '项目', link: '/projects' },
-      { title: '友链', link: '/links' },
-      { title: '关于', link: '/about' }
-    ]
+    menu: navigation
   },
 
   /** Configure the footer of your site. */

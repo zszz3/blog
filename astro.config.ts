@@ -32,6 +32,10 @@ export default defineConfig({
   trailingSlash: 'never',
   // root: './my-project-directory',
   server: { host: true },
+  vite: {
+    // Pure's client utilities use a virtual module resolved by its Vite plugin.
+    optimizeDeps: { exclude: ['astro-pure/utils'] }
+  },
   // https://docs.astro.build/en/guides/prefetch/
   prefetch: {
     // prefetchAll: true,

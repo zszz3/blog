@@ -74,14 +74,6 @@ body::before {
     radial-gradient(ellipse at 95% 5%, hsl(var(--accent) / .10), transparent 55%) !important;
 }
 #main-container { position: relative; }
-header-component > a { color: hsl(var(--primary)); letter-spacing: -.04em; }
-#headerExpandContent a { position: relative; }
-#headerExpandContent a[aria-current='page'] { color: hsl(var(--primary)); }
-#headerExpandContent a[aria-current='page']::after {
-  content: ''; height: 3px; border-radius: 2px; position: absolute;
-  bottom: 0; left: .8rem; right: .8rem; background: hsl(var(--accent));
-}
-#toggleDarkMode { color: hsl(var(--accent-ink)); background: hsl(var(--orange-surface)); border-color: hsl(var(--accent) / .2); }
 #content-header h1 { color: hsl(var(--primary)); text-wrap: balance; letter-spacing: -.04em; }
 .article-info h1 { color: hsl(var(--primary)); }
 #content-header > img { border-color: hsl(var(--primary) / .3); box-shadow: 7px 7px 0 hsl(var(--orange-surface)); }
@@ -126,7 +118,6 @@ toc-heading .toc-item { font-size: .875rem; line-height: 1.65; padding-block: .3
 :focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 4px; }
 ::selection { color: hsl(var(--foreground)); background: hsl(var(--accent) / .25); }
 @media (max-width: 640px) {
-  #headerExpandContent a[aria-current='page']::after { left: auto; width: 2rem; right: 0; }
   .prose { font-size: 1rem; }
   .article-info h1 { font-size: 1.75rem; }
 }

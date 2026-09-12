@@ -1,207 +1,273 @@
 ---
 import config from '@/site-config'
-
+import { navigation } from '../navigation'
 import { Icon } from 'astro-pure/user'
+
+const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/'
+const matchesPath = (link: string) => link.startsWith('/') && (
+  currentPath === link || (link !== '/' && currentPath.startsWith(link + '/'))
+)
+const themes = [
+  { value: 'light', title: '浅色', icon: 'sun' },
+  { value: 'dark', title: '深色', icon: 'moon' },
+  { value: 'system', title: '跟随系统', icon: 'computer' }
+] as const
 ---
 
-<header-component
-  class='group sticky top-4 z-50 max-md:z-30 mb-12 flex items-center justify-between rounded-xl border border-transparent max-sm:py-1 sm:rounded-2xl'
->
-  <a
-    class='z-30 text-xl font-medium group-[.not-top]:ms-2 sm:group-[.not-top]:ms-3'
-    style='transition:margin-inline 0.3s'
-    href='/'
-    aria-label='Brand'>{config.title}</a
-  >
+{/* Navigation layout inspired by https://www.lansganbs.cn/ (Firefly). */}
+<header-component class='site-header'>
+  <div class='header-bar'>
+    <a class='header-brand' href='/' aria-label={`${config.title} 首页`}>
+      <span>{config.title}</span><span class='brand-dot' aria-hidden='true'></span>
+    </a>
 
-  <div class='flex items-center gap-x-2'>
-    {/* Menu links */}
-    <div
-      id='headerExpandContent'
-      class='end-0 start-0 top-12 grid border border-transparent group-[.not-top]:rounded-xl group-[.expanded]:opacity-100 dark:group-[.expanded.not-top]:bg-muted max-sm:absolute max-sm:opacity-0 max-sm:group-[.not-top]:border-border max-sm:group-[.expanded.not-top]:bg-background max-sm:group-[.not-top]:px-4 max-sm:group-[.not-top]:py-2 sm:grid-rows-1'
-    >
-      <div class='flex flex-col items-center justify-center overflow-hidden sm:flex-row'>
-        {
-          config.header.menu?.map((item) => (
-            <a
-              href={item.link}
-              class='w-full flex-none grow py-2 text-right font-medium transition-none hover:text-primary sm:w-fit sm:px-3'
-              aria-label='Nav menu item'
-              data-astro-prefetch
-            >
-              {item.title}
-            </a>
-          ))
-        }
+    <nav id='site-navigation' class='site-navigation' aria-label='主导航'>
+      <ul class='navigation-list'>
+        {navigation.map(item => {
+          const active = matchesPath(item.link) || item.children?.some(child => matchesPath(child.link))
+          return (
+            <li>
+              {item.children ? (
+                <details class:list={['header-dropdown', 'navigation-dropdown', { 'is-active': active }]} data-navigation-dropdown>
+                  <summary class='navigation-item' aria-controls={`navigation-${item.icon}`}>
+                    <Icon name={item.icon} class='navigation-icon' />
+                    <span>{item.title}</span>
+                    <svg class='chevron' viewBox='0 0 16 16' aria-hidden='true'><path d='m4 6 4 4 4-4' /></svg>
+                  </summary>
+                  <div class='dropdown-panel' id={`navigation-${item.icon}`}>
+                    {item.children.map(child => (
+                      <a class:list={['dropdown-link', { 'is-active': matchesPath(child.link) }]}
+                        href={child.link} aria-current={currentPath === child.link ? 'page' : undefined}
+                        target={child.link.startsWith('https://') ? '_blank' : undefined}
+                        rel={child.link.startsWith('https://') ? 'noopener noreferrer' : undefined}>
+                        <Icon name={child.icon} class='navigation-icon' />
+                        <span>{child.title}</span>
+                        {child.link.startsWith('https://') && <span class='external-arrow' aria-hidden='true'>↗</span>}
+                      </a>
+                    ))}
+                  </div>
+                </details>
+              ) : (
+                <a class:list={['navigation-item', { 'is-active': active }]}
+                  href={item.link} aria-current={currentPath === item.link ? 'page' : undefined} data-astro-prefetch>
+                  <Icon name={item.icon} class='navigation-icon' /><span>{item.title}</span>
+                </a>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </nav>
 
-      </div>
-    </div>
-
-    {/* buttons */}
-    <div class='z-30 flex gap-x-4 group-[.not-top]:gap-x-2' style='transition:gap 0.3s'>
-      <a href='/search' aria-label='搜索文章' title='搜索文章' class='flex size-8 items-center justify-center rounded-md hover:bg-muted'>
-        <Icon name='search' class='size-5' />
+    <div class='header-tools'>
+      <form class='header-search' role='search' aria-label='站内搜索' action='/search' method='get'>
+        <button type='submit' aria-label='搜索文章'><Icon name='search' class='tool-icon' /></button>
+        <input data-header-search-input type='search' name='q' aria-label='搜索文章' placeholder='搜索文章' autocomplete='off' />
+        <kbd aria-hidden='true'>⌘ K</kbd>
+      </form>
+      <a class='header-tool mobile-search' href='/search' aria-label='搜索文章' title='搜索文章'>
+        <Icon name='search' class='tool-icon' />
       </a>
-      <button
-        id='toggleDarkMode'
-        class='group/dark box-content size-5 rounded-md border p-1.5 transition-colors hover:bg-border sm:group-[.not-top]:rounded-xl'
-      >
-        <span class='sr-only'>Dark Theme</span>
-        <Icon class='system size-5 group-hover/dark:text-primary' name='computer' />
-        <Icon class='light hidden size-5 group-hover/dark:text-primary' name='sun' />
-        <Icon class='dark hidden size-5 group-hover/dark:text-primary' name='moon' />
-      </button>
-      <button
-        id='toggleMenu'
-        class='rounded-md border p-1.5 transition-colors hover:bg-border sm:hidden sm:group-[.not-top]:rounded-xl'
-      >
-        <span class='sr-only'>Menu</span>
-        <Icon class='size-5' name='menu' />
+      <details class='header-dropdown theme-dropdown'>
+        <summary class='header-tool' aria-label='外观设置' aria-controls='theme-options' title='外观设置'>
+          <Icon name='sun' class='theme-light tool-icon' /><Icon name='moon' class='theme-dark tool-icon' />
+        </summary>
+        <div id='theme-options' class='dropdown-panel theme-panel' role='group' aria-label='颜色模式'>
+          {themes.map(theme => (
+            <button class='dropdown-link theme-option' type='button' data-theme-value={theme.value} aria-pressed='false'>
+              <Icon name={theme.icon} class='navigation-icon' /><span>{theme.title}</span>
+              <span class='theme-check' aria-hidden='true'>✓</span>
+            </button>
+          ))}
+        </div>
+      </details>
+      <button class='header-tool menu-toggle' type='button' aria-label='展开导航' aria-expanded='false' aria-controls='site-navigation'>
+        <Icon name='menu' class='tool-icon menu-open-icon' />
+        <svg class='tool-icon menu-close-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='m6 6 12 12M6 18 18 6' /></svg>
       </button>
     </div>
   </div>
 </header-component>
 
-{/* Use inline to load icon quicker firstly */}
-<script is:inline>
-  const toggleDarkModeElement = document.getElementById('toggleDarkMode')
-  if (toggleDarkModeElement) {
-    toggleDarkModeElement.dataset.theme = localStorage.getItem('theme') || 'system'
-  }
-</script>
 <script>
-  import { setTheme, showToast } from 'astro-pure/utils'
+  import { setTheme } from 'astro-pure/utils'
 
   class HeaderComponent extends HTMLElement {
+    #events = new AbortController()
+
     connectedCallback() {
-      // Header
-      let preScrollY = window.scrollY
-      this.classList.toggle('not-top', preScrollY > 20)
-      window.addEventListener('scroll', () => {
-        this.classList.toggle('not-top', window.scrollY > 20)
-        this.dataset.show = (window.scrollY < 350 || window.scrollY < preScrollY).toString()
-        preScrollY = window.scrollY
+      const { signal } = this.#events
+      const dropdowns = [...this.querySelectorAll<HTMLDetailsElement>('.header-dropdown')]
+      const menuButton = this.querySelector<HTMLButtonElement>('.menu-toggle')!
+      const pinned = new WeakSet<HTMLDetailsElement>()
+      const closeDropdowns = (except?: HTMLDetailsElement) => {
+        dropdowns.forEach(dropdown => {
+          if (dropdown !== except) { dropdown.open = false; pinned.delete(dropdown) }
+        })
+      }
+      const closeNavigation = () => {
+        this.classList.remove('menu-expanded')
+        menuButton.setAttribute('aria-expanded', 'false')
+        menuButton.setAttribute('aria-label', '展开导航')
+      }
+
+      dropdowns.forEach(dropdown => {
+        const summary = dropdown.querySelector('summary')!
+        summary.setAttribute('aria-expanded', String(dropdown.open))
+        dropdown.addEventListener('toggle', () => {
+          summary.setAttribute('aria-expanded', String(dropdown.open))
+          if (dropdown.open) closeDropdowns(dropdown)
+          else pinned.delete(dropdown)
+        }, { signal })
+        if (dropdown.hasAttribute('data-navigation-dropdown')) {
+          dropdown.addEventListener('pointerenter', event => {
+            if (event.pointerType !== 'mouse' || !matchMedia('(min-width: 960px) and (hover: hover)').matches) return
+            closeDropdowns(dropdown)
+            dropdown.open = true
+          }, { signal })
+          dropdown.addEventListener('pointerleave', () => {
+            if (!pinned.has(dropdown) && !dropdown.contains(document.activeElement)) dropdown.open = false
+          }, { signal })
+          summary.addEventListener('click', event => {
+            // Keep a menu opened by hover open when its label is clicked.
+            if (dropdown.open && !pinned.has(dropdown)) { event.preventDefault(); pinned.add(dropdown) }
+            else if (!dropdown.open) pinned.add(dropdown)
+          }, { signal })
+        }
       })
 
-      // Dark Mode
-      const darkModeBtn = this.querySelector('#toggleDarkMode') as HTMLElement
-      darkModeBtn.addEventListener('click', () => {
-        // Old way: dispatch event
-        // const toggleDarkModeEvent = new CustomEvent('theme-change', {
-        //   detail: { theme: localStorage.getItem('theme') === 'light' ? 'dark' : 'light' }
-        // })
-        // document.dispatchEvent(toggleDarkModeEvent)
-        const newTheme = setTheme(undefined, true)
-        darkModeBtn.dataset.theme = newTheme
-        showToast({ message: `Set theme to ${newTheme}` })
-      })
+      menuButton.addEventListener('click', () => {
+        const expanded = this.classList.toggle('menu-expanded')
+        menuButton.setAttribute('aria-expanded', String(expanded))
+        menuButton.setAttribute('aria-label', expanded ? '收起导航' : '展开导航')
+        closeDropdowns()
+      }, { signal })
+      document.addEventListener('pointerdown', event => {
+        if (!this.contains(event.target as Node)) { closeDropdowns(); closeNavigation() }
+      }, { signal })
+      document.addEventListener('keydown', event => {
+        if (event.key !== 'Escape') return
+        const opened = dropdowns.find(dropdown => dropdown.open)
+        if (opened) {
+          event.preventDefault()
+          opened.open = false
+          pinned.delete(opened)
+          opened.querySelector('summary')?.focus()
+        } else if (this.classList.contains('menu-expanded')) {
+          closeNavigation()
+          menuButton.focus()
+        }
+      }, { signal })
+      this.addEventListener('focusout', event => {
+        if (event.relatedTarget && !this.contains(event.relatedTarget as Node)) closeDropdowns()
+      }, { signal })
+      matchMedia('(min-width: 960px)').addEventListener('change', () => {
+        closeNavigation()
+        closeDropdowns()
+      }, { signal })
 
-      // Menu
-      this.querySelector('#toggleMenu')?.addEventListener('click', () => {
-        this.classList.toggle('expanded')
-      })
+      const themeOptions = [...this.querySelectorAll<HTMLButtonElement>('[data-theme-value]')]
+      const updateThemeOptions = () => {
+        const selected = localStorage.getItem('theme') || 'system'
+        themeOptions.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.themeValue === selected)))
+      }
+      updateThemeOptions()
+      themeOptions.forEach(button => button.addEventListener('click', () => {
+        setTheme(button.dataset.themeValue, true)
+        updateThemeOptions()
+        closeDropdowns()
+        this.querySelector<HTMLElement>('.theme-dropdown summary')?.focus()
+      }, { signal }))
     }
+
+    disconnectedCallback() { this.#events.abort() }
   }
 
-  customElements.define('header-component', HeaderComponent)
+  if (!customElements.get('header-component')) customElements.define('header-component', HeaderComponent)
 </script>
 
 <style>
-  header-component {
-    transition:
-      padding 0.3s,
-      transform 0.3s,
-      margin-inline 0.3s,
-      border 0.15s,
-      background-color 0.15s;
-
-    &.not-top {
-      --un-border-opacity: 1;
-      border-color: hsl(var(--border) / var(--un-border-opacity));
-      --un-bg-opacity: 1;
-      background-color: hsl(var(--background) / var(--un-bg-opacity));
-      padding-left: 0.375rem;
-      padding-right: 0.375rem;
-      box-shadow:
-        rgb(255, 255, 255) 0px 0px 0px 0px,
-        rgba(24, 24, 27, 0.08) 0px 0px 0px 1px,
-        rgba(39, 39, 42, 0.08) 0px 10px 15px -3px,
-        rgba(39, 39, 42, 0.08) 0px 4px 6px -4px;
-    }
-    &[data-show='false']:not(.expanded) {
-      transform: translateY(-5rem);
-    }
+  .site-header {
+    display: block;
+    position: sticky;
+    top: .75rem;
+    z-index: 50;
+    width: 100%;
+    margin: 1.25rem 0 2.75rem;
+    border: 1px solid hsl(var(--border) / .7);
+    border-radius: 1rem;
+    background: hsl(var(--background) / .88);
+    box-shadow: 0 5px 22px hsl(var(--foreground) / .045);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
   }
-  @media (min-width: 800px) {
-    header-component.not-top {
-      margin-inline: 8%;
-    }
+  .header-bar { display: flex; align-items: center; gap: 1.5rem; min-height: 4.25rem; padding: .5rem 1.1rem; }
+  .header-brand { display: inline-flex; align-items: baseline; flex-shrink: 0; gap: .3rem; color: hsl(var(--primary)); font-size: 1.375rem; font-weight: 700; letter-spacing: -.055em; text-decoration: none; }
+  .brand-dot { width: .35rem; height: .35rem; background: hsl(var(--accent)); border-radius: 50%; }
+  .site-navigation { margin-left: auto; }
+  .navigation-list { display: flex; align-items: center; gap: .15rem; margin: 0; padding: 0; list-style: none; }
+  .navigation-item { display: flex; align-items: center; justify-content: center; gap: .4rem; min-height: 2.75rem; padding: .5rem .65rem; border-radius: .65rem; color: hsl(var(--foreground)); font-size: .9375rem; font-weight: 600; line-height: 1.5; white-space: nowrap; cursor: pointer; text-decoration: none; transition: color .15s, background-color .15s; }
+  .navigation-item:hover, .navigation-dropdown[open] > summary, .header-tool:hover, .header-dropdown[open] > .header-tool { color: hsl(var(--primary)); background: hsl(var(--blue-surface)); }
+  .navigation-item.is-active, .navigation-dropdown.is-active > summary { color: hsl(var(--primary)); background: hsl(var(--blue-surface)); }
+  .navigation-icon { flex-shrink: 0; width: 1.05rem; height: 1.05rem; }
+  .chevron { width: .75rem; height: .75rem; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; transition: transform .18s; }
+  details[open] > summary .chevron { transform: rotate(180deg); }
+  summary { list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  .header-dropdown { position: relative; }
+  .dropdown-panel { position: absolute; top: calc(100% + .65rem); left: 0; z-index: 60; min-width: 10.5rem; padding: .45rem; border: 1px solid hsl(var(--border) / .75); border-radius: .85rem; background: hsl(var(--background) / .98); box-shadow: 0 10px 32px hsl(var(--foreground) / .09); }
+  .dropdown-panel::before { content: ''; position: absolute; inset: -.75rem 0 auto; height: .75rem; }
+  .dropdown-link { display: flex; align-items: center; gap: .7rem; width: 100%; min-height: 2.75rem; padding: .55rem .7rem; border: 0; border-radius: .5rem; background: transparent; color: hsl(var(--foreground)); font-size: .9375rem; text-align: left; text-decoration: none; white-space: nowrap; cursor: pointer; }
+  .dropdown-link:hover, .dropdown-link.is-active { background: hsl(var(--blue-surface)); color: hsl(var(--primary)); }
+  .external-arrow { margin-left: auto; color: hsl(var(--muted-foreground)); }
+  .header-tools { display: flex; align-items: center; gap: .3rem; flex-shrink: 0; }
+  .header-search { display: flex; align-items: center; gap: .25rem; width: 10.5rem; height: 2.6rem; margin-right: .15rem; padding: 0 .55rem 0 .25rem; border: 1px solid transparent; border-radius: .65rem; background: hsl(var(--muted) / .75); color: hsl(var(--muted-foreground)); }
+  .header-search:focus-within { border-color: hsl(var(--primary) / .45); background: hsl(var(--background)); }
+  .header-search button { display: grid; flex-shrink: 0; place-items: center; width: 2rem; min-height: 2.5rem; border: 0; background: none; color: inherit; cursor: pointer; }
+  .header-search input { min-width: 0; width: 100%; border: 0; outline: none; background: transparent; color: hsl(var(--foreground)); font-size: .875rem; }
+  .header-search input::placeholder { color: hsl(var(--muted-foreground)); opacity: .85; }
+  .header-search kbd { flex-shrink: 0; font-family: inherit; font-size: .75rem; opacity: .6; }
+  .header-tool { display: flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; padding: 0; border: 0; border-radius: .65rem; color: hsl(var(--foreground)); background: transparent; cursor: pointer; }
+  .tool-icon { width: 1.15rem; height: 1.15rem; }
+  .theme-panel { left: auto; right: 0; min-width: 10rem; }
+  .theme-option[aria-pressed='true'] { color: hsl(var(--accent-ink)); background: hsl(var(--orange-surface)); }
+  .theme-check { margin-left: auto; opacity: 0; }
+  .theme-option[aria-pressed='true'] .theme-check { opacity: 1; }
+  .theme-dark, .mobile-search, .menu-toggle, .menu-close-icon { display: none; }
+  :global(.dark) .theme-light { display: none; }
+  :global(.dark) .theme-dark { display: block; }
+  .menu-close-icon { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; }
+  @media (min-width: 960px) and (max-width: 1150px) {
+    .header-bar { gap: .7rem; padding-inline: .8rem; }
+    .navigation-item { padding-inline: .45rem; gap: .3rem; }
+    .header-search { width: 9rem; }
+    .header-search kbd { display: none; }
+    .header-brand { font-size: 1.25rem; }
   }
-  :global(.dark) header-component.not-top {
-    background-color: hsl(var(--muted) / var(--un-bg-opacity));
+  @media (max-width: 959px) {
+    .header-bar { min-height: 3.8rem; padding: .35rem .75rem; gap: .75rem; }
+    .header-tools { margin-left: auto; }
+    .site-navigation { display: none; position: absolute; top: calc(100% + .6rem); left: 0; right: 0; max-height: calc(100dvh - 7rem); overflow-y: auto; margin: 0; padding: .65rem; border: 1px solid hsl(var(--border)); border-radius: .9rem; background: hsl(var(--background) / .98); box-shadow: 0 12px 28px hsl(var(--foreground) / .08); }
+    .menu-expanded .site-navigation { display: block; }
+    .navigation-list { display: flex; flex-direction: column; align-items: stretch; gap: .15rem; }
+    .navigation-item { justify-content: flex-start; gap: .75rem; padding: .65rem .85rem; min-height: 3rem; font-size: 1rem; }
+    .navigation-item .chevron { margin-left: auto; }
+    .navigation-dropdown .dropdown-panel { position: static; margin: .15rem .75rem .5rem 1.35rem; padding: .15rem 0 .15rem .7rem; border: 0; border-left: 2px solid hsl(var(--border)); border-radius: 0; background: transparent; box-shadow: none; }
+    .navigation-dropdown .dropdown-panel::before { display: none; }
+    .dropdown-link { min-height: 2.8rem; }
+    .header-search { display: none; }
+    .mobile-search, .menu-toggle { display: flex; }
+    .menu-expanded .menu-open-icon { display: none; }
+    .menu-expanded .menu-close-icon { display: block; }
   }
-
-  /* header menu */
-  @media (max-width: 640px) {
-    #headerExpandContent {
-      grid-template-rows: 0fr;
-      transition:
-        opacity 0.3s,
-        padding 0.3s,
-        border-color 0.15s,
-        grid-template-rows 0.3s;
-    }
-    .expanded #headerExpandContent {
-      grid-template-rows: 1fr;
-    }
-    .expanded.not-top #headerExpandContent {
-      box-shadow:
-        rgb(255, 255, 255) 0px 0px 0px 0px,
-        rgba(24, 24, 27, 0.08) 0px 0px 0px 1px,
-        rgba(39, 39, 42, 0.08) 0px 10px 15px -3px,
-        rgba(39, 39, 42, 0.08) 0px 4px 6px -4px;
-    }
-
-    /* header component after */
-    header-component #headerExpandContent::after {
-      box-sizing: content-box;
-      content: '';
-      position: absolute;
-      inset-inline: calc(-1rem - 1px);
-      bottom: 0;
-      top: -5rem;
-      z-index: -1;
-      transition: 0.3s;
-      visibility: hidden;
-      opacity: 0;
-      border-bottom: 1px solid transparent;
-    }
-    header-component:not(.not-top) #headerExpandContent::after {
-      visibility: visible;
-      bottom: -1rem;
-      opacity: 1;
-      background-color: hsl(var(--muted) / var(--un-bg-opacity, 1));
-      border-bottom-color: hsl(var(--border) / var(--un-border-opacity, 1));
-    }
+  @media (max-width: 480px) {
+    .site-header { top: .5rem; margin-top: .75rem; margin-bottom: 2rem; border-radius: .85rem; }
+    .header-bar { padding-inline: .6rem; gap: .25rem; }
+    .header-brand { font-size: 1.2rem; }
+    .header-tools { gap: 0; }
   }
-
-  /* dark light mode toggle */
-  #toggleDarkMode {
-    &[data-theme='dark'] {
-      & .system {
-        display: none;
-      }
-      & .dark {
-        display: block;
-      }
-    }
-    &[data-theme='light'] {
-      & .system {
-        display: none;
-      }
-      .light {
-        display: block;
-      }
-    }
+  @media (prefers-reduced-motion: reduce) {
+    .navigation-item, .chevron { transition: none; }
   }
 </style>
+<noscript><style>.site-header .site-navigation { display: block; position: static; max-height: none; box-shadow: none; }.site-header .header-bar { flex-wrap: wrap; }.site-header .site-navigation { width: 100%; order: 3; }.site-header .menu-toggle { display: none; }</style></noscript>
