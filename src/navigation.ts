@@ -26,8 +26,7 @@ export const navigation: NavigationItem[] = [
   {
     title: '链接', link: 'https://github.com/zszz3', icon: 'link',
     children: [
-      { title: 'GitHub', link: 'https://github.com/zszz3', icon: 'github-circle' },
-      { title: 'RSS', link: '/rss.xml', icon: 'rss' }
+      { title: 'GitHub', link: 'https://github.com/zszz3', icon: 'github-circle' }
     ]
   }
 ]
