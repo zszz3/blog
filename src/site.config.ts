@@ -59,11 +59,11 @@ export const theme: ThemeUserConfig = {
   /** Configure the footer of your site. */
   footer: {
     // Year format
-    year: `© ${new Date().getFullYear()}`,
+    year: '',
     // year: `© 2019 - ${new Date().getFullYear()}`,
     links: import.meta.env.PUBLIC_ICP_NUMBER ? [{ title: import.meta.env.PUBLIC_ICP_NUMBER, link: 'https://beian.miit.gov.cn/' }] : [],
     /** Enable displaying a “Astro & Pure theme powered” link in your site’s footer. */
-    credits: true,
+    credits: false,
     /** Optional details about the social media accounts for this site. */
     social: [
       { icon: 'github', label: 'GitHub', href: 'https://github.com/zszz3' },
