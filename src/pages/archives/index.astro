@@ -1,6 +1,5 @@
 ---
 import { articleUrl, getArticles, groupArticlesByYear } from '@/utils/articles'
-import { Button } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
 
 export const prerender = true
@@ -10,7 +9,6 @@ const allPostsByYear = groupArticlesByYear(allPosts)
 ---
 
 <PageLayout meta={{ title: '归档', description: '按时间查阅全部文章。' }}>
-  <Button title='返回' href='/blog' variant='back' />
   <main class='mt-6 lg:mt-10'>
     <div id='content-header' class='animate'>
       <h1 class='mb-6 text-3xl font-medium'>归档</h1>

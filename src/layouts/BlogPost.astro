@@ -55,7 +55,6 @@ const adjacentPosts = isDocument ? seriesPosts : posts.filter(post => post.data.
 <PageLayout
   meta={{ articleDate, description, ogImage: socialImage, title }}
   highlightColor={primaryColor}
-  back={data.views.includes('blog') ? '/blog' : '/docs'}
 >
   <Fragment slot='sidebar'>
     {isDocument && <DocsContents title={false} series={seriesName} class='mb-6' />}

@@ -1,6 +1,6 @@
 ---
 import { getArticles } from '@/utils/articles'
-import { Button, Icon } from 'astro-pure/user'
+import { Icon } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
 const posts = await getArticles(undefined, false)
 const tags = [...new Set(posts.flatMap(post => post.data.tags))].sort()
@@ -8,7 +8,6 @@ const categories = [...new Set(posts.map(post => post.data.category))].sort()
 const years = [...new Set(posts.map(post => post.data.publishDate.getUTCFullYear()))].sort((a,b) => b-a)
 ---
 <PageLayout meta={{ title: '搜索', description: '搜索文章、代码和文档，按分类、标签与年份筛选。' }}>
-  <Button title='返回博客' href='/blog' variant='back' />
   <main class='mt-6 lg:mt-10'>
     <div id='content-header' class='animate'><h1 class='mb-6 text-3xl font-medium'>搜索</h1></div>
     <section id='content' class='animate search-page' aria-label='全文搜索'>
