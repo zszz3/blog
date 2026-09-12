@@ -24,8 +24,8 @@ const { projects } = Astro.props
       </div>
       <p class='project-description'>{project.description}</p>
       <a class='project-link' href={project.github} target='_blank' rel='noopener noreferrer' aria-label={`${project.name} 的 GitHub 仓库`}>
-        <Icon name='github-circle' class='size-5' />
-        <span>GitHub</span>
+        <Icon name='github-circle' class='size-5 shrink-0' />
+        <span class='project-url'>{project.github}</span>
         <span class='project-arrow' aria-hidden='true'>↗</span>
       </a>
     </article>
@@ -89,12 +89,14 @@ const { projects } = Astro.props
     gap: .5rem;
     margin-top: auto;
     min-height: 2.75rem;
+    max-width: 100%;
     color: hsl(var(--primary));
     font-size: .9375rem;
     text-decoration: none;
   }
+  .project-url { min-width: 0; overflow-wrap: anywhere; }
   .project-link:hover { text-decoration: underline; text-underline-offset: 4px; }
-  .project-arrow { margin-left: .25rem; font-size: 1.125rem; }
+  .project-arrow { flex-shrink: 0; margin-left: .25rem; font-size: 1.125rem; }
   @media (max-width: 480px) {
     .project-card { padding: 1.25rem; }
   }

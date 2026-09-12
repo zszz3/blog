@@ -17,10 +17,9 @@ const posts = (await getArticles('blog')).slice(0, 6)
       <h1 class='text-3xl font-medium'>{config.author}</h1>
     </section>
     <div id='content' class='animate flex flex-col gap-y-10 md:w-4/5 lg:w-5/6'>
-      <Section title='关于我'>
+      <Section title='关于我' href='/about'>
         <p>🏫 <strong>Southeast University</strong></p>
         <p class='text-muted-foreground profile-focus'>🎯 <strong>Focus:</strong> Backend · AI Agents · ASI · 3D Gaussian Splatting</p>
-        <Button title='更多关于我' class='w-fit self-end' href='/about' variant='ahead' />
       </Section>
       <Section title='最近的文章'>
         <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>{posts.map(post => <PostPreview post={post} />)}</ul>
@@ -29,7 +28,7 @@ const posts = (await getArticles('blog')).slice(0, 6)
       <Section title='项目与归档'>
         <div class='grid grid-cols-1 gap-3 sm:grid-cols-2'>
           <ProjectCard href='/projects' heading='AgentRecall' subheading='Author · Agent 资产层' imagePath='/src/assets/projects/1.avif' />
-          <ProjectCard href='/archives' heading='文章归档' subheading='按年份查阅全部文章' imagePath='/src/assets/projects/4.avif' />
+          <ProjectCard href='/archives' heading='文章归档' subheading='按标签、分类与年份查阅文章' imagePath='/src/assets/projects/4.avif' />
         </div>
         <Button title='全部项目' class='w-fit self-end' href='/projects' variant='ahead' />
       </Section>

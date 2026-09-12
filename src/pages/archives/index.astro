@@ -1,53 +1,128 @@
 ---
-import { getArticles } from '@/utils/articles'
-import { PostPreview } from 'astro-pure/components/pages'
-import { groupArticlesByYear } from '@/utils/articles'
+import { articleUrl, getArticles, groupArticlesByYear } from '@/utils/articles'
 import { Button } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
 
 export const prerender = true
 
 const allPosts = await getArticles('blog')
-const allPostsByDate = allPosts
-const allPostsByYear = groupArticlesByYear(allPostsByDate)
-
-const meta = {
-  description: '按年份查阅全部文章。',
-  title: '归档'
-}
+const allPostsByYear = groupArticlesByYear(allPosts)
+const tagCounts = [...new Set(allPosts.flatMap(post => post.data.tags))]
+  .map(tag => ({ tag, count: allPosts.filter(post => post.data.tags.includes(tag)).length }))
+  .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag, 'zh-CN'))
+const categories = [...new Set(allPosts.map(post => post.data.category))]
+  .sort((a, b) => a.localeCompare(b, 'zh-CN'))
 ---
 
-<PageLayout {meta}>
+<PageLayout meta={{ title: '归档', description: '按标签、分类与年份查阅全部文章。' }}>
   <Button title='返回' href='/blog' variant='back' />
-
   <main class='mt-6 lg:mt-10'>
     <div id='content-header' class='animate'>
       <h1 class='mb-6 text-3xl font-medium'>归档</h1>
     </div>
-
-    {allPosts.length === 0 && <p>还没有文章。</p>}
-
-    <section id='content' class='animate' aria-label='文章归档'>
-      {
-        allPostsByYear.map(([year, posts]) => (
-          <div class='relative mt-20'>
-            <h2
-              class='absolute -start-6 -top-16 z-0 text-9xl font-bold text-transparent opacity-12 dark:opacity-25'
-              style='-webkit-text-stroke-width:2px;-webkit-text-stroke-color:hsl(var(--foreground)/var(--un-text-opacity))'
-            >
-              <samp>{year}</samp>
-            </h2>
-            <p class='px-5 text-muted-foreground'>
-              {posts.length} 篇文章
-            </p>
-            <ul class='flex flex-col text-start'>
-              {posts.map((p) => (
-                <PostPreview post={p} class='border-0 bg-transparent py-2' />
+    <div id='content' class='animate'>
+      <section id='archive-browser' class='archive-page' aria-label='文章归档'>
+        <form id='archive-filters' class='archive-filters' hidden>
+          <div class='filter-line' role='group' aria-label='按标签筛选'>
+            <span class='filter-label'>标签</span>
+            <div class='archive-tags'>
+              <button type='button' data-archive-tag='' aria-pressed='true'>全部 <span>{allPosts.length}</span></button>
+              {tagCounts.map(({ tag, count }) => (
+                <button type='button' data-archive-tag={tag} aria-pressed='false'>{tag} <span>{count}</span></button>
+              ))}
+            </div>
+          </div>
+          <div class='filter-line'>
+            <label for='archive-category' class='filter-label'>分类</label>
+            <select id='archive-category' name='category'>
+              <option value=''>全部分类</option>
+              {categories.map(category => <option value={category}>{category}</option>)}
+            </select>
+          </div>
+        </form>
+        <noscript><p>也可以<a href='/tags'>按标签浏览文章</a>。</p></noscript>
+        <div class='archive-summary'>
+          <p id='archive-status' role='status' aria-live='polite'>共 {allPosts.length} 篇文章</p>
+          <button id='archive-reset' type='button' hidden>清除筛选</button>
+        </div>
+        <p id='archive-empty' class='archive-empty' hidden>
+          {allPosts.length ? '没有匹配的文章，试试其他标签或分类。' : '还没有文章。'}
+        </p>
+        {allPostsByYear.map(([year, posts]) => (
+          <section class='archive-year' data-archive-year={year}>
+            <div class='archive-year-heading'>
+              <h2>{year}</h2>
+              <span data-year-count>{posts.length} 篇</span>
+            </div>
+            <ul>
+              {posts.map(post => (
+                <li class='archive-post' data-archive-entry data-tags={JSON.stringify(post.data.tags)} data-category={post.data.category}>
+                  <a class='archive-post-link' href={articleUrl(post)}>
+                    <time datetime={post.data.publishDate.toISOString()}>{post.data.publishDate.toISOString().slice(5, 10)}</time>
+                    <span class='archive-post-title'>{post.data.title}</span>
+                    <span class='archive-post-arrow' aria-hidden='true'>→</span>
+                  </a>
+                  <div class='archive-post-meta'>
+                    <span>{post.data.category}</span>
+                    {post.data.tags.map(tag => <span class='archive-post-tag'>#{tag}</span>)}
+                  </div>
+                </li>
               ))}
             </ul>
-          </div>
-        ))
-      }
-    </section>
+          </section>
+        ))}
+      </section>
+    </div>
   </main>
 </PageLayout>
+
+<script>
+  import '../../utils/archive-client'
+</script>
+
+<style>
+  .archive-page { max-width: 56rem; }
+  .archive-page [hidden] { display: none !important; }
+  .archive-filters { display: grid; gap: 1rem; margin-bottom: 1.5rem; }
+  .filter-line { display: grid; grid-template-columns: 3rem minmax(0, 1fr); gap: .75rem; align-items: start; }
+  .filter-label { padding-top: .375rem; color: hsl(var(--muted-foreground)); font-size: .875rem; }
+  .archive-tags { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .archive-tags button {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .375rem .75rem; border: 1px solid hsl(var(--border)); border-radius: .5rem;
+    background: hsl(var(--background)); color: hsl(var(--muted-foreground)); font-size: .875rem;
+    transition: color .2s, border-color .2s, background-color .2s;
+  }
+  .archive-tags button span { opacity: .65; }
+  .archive-tags button:hover { border-color: hsl(var(--primary) / .5); color: hsl(var(--primary)); }
+  .archive-tags button[aria-pressed='true'] {
+    color: hsl(var(--primary)); background: hsl(var(--blue-surface)); border-color: hsl(var(--primary) / .45);
+  }
+  #archive-category {
+    width: fit-content; min-width: 10rem; max-width: 100%; padding: .375rem 2rem .375rem .75rem;
+    border: 1px solid hsl(var(--border)); border-radius: .5rem;
+    color: hsl(var(--foreground)); background-color: hsl(var(--background)); font: inherit; font-size: .875rem;
+  }
+  .archive-summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid hsl(var(--border)); }
+  #archive-status { color: hsl(var(--muted-foreground)); font-size: .875rem; }
+  #archive-reset { color: hsl(var(--primary)); font-size: .875rem; }
+  #archive-reset:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .archive-empty { padding-block: 2rem; color: hsl(var(--muted-foreground)); }
+  .archive-year { margin-top: 2rem; }
+  .archive-year-heading { display: flex; align-items: baseline; gap: .75rem; margin-bottom: .5rem; }
+  .archive-year-heading h2 { font-size: 1.25rem; font-weight: 600; }
+  .archive-year-heading > span { color: hsl(var(--muted-foreground)); font-size: .875rem; }
+  .archive-post { padding-block: .875rem; border-bottom: 1px solid hsl(var(--border) / .6); }
+  .archive-post-link { display: grid; grid-template-columns: 4rem minmax(0, 1fr) auto; gap: 1rem; align-items: baseline; text-decoration: none; }
+  .archive-post-link time { color: hsl(var(--muted-foreground)); font-size: .875rem; }
+  .archive-post-title { color: hsl(var(--primary)); font-size: 1rem; font-weight: 500; overflow-wrap: anywhere; }
+  .archive-post-link:hover .archive-post-title { text-decoration: underline; text-underline-offset: 4px; }
+  .archive-post-arrow { color: hsl(var(--muted-foreground)); }
+  .archive-post-meta { display: flex; flex-wrap: wrap; gap: .25rem .75rem; margin: .375rem 0 0 5rem; font-size: .875rem; color: hsl(var(--muted-foreground)); }
+  .archive-post-tag { color: hsl(var(--accent-ink)); }
+  @media (max-width: 480px) {
+    .filter-line { grid-template-columns: 2.5rem minmax(0, 1fr); gap: .5rem; }
+    .archive-post-link { grid-template-columns: 3rem minmax(0, 1fr) auto; gap: .75rem; }
+    .archive-post-meta { margin-left: 3.75rem; }
+  }
+</style>

@@ -1,14 +1,54 @@
 ---
 import { cn } from 'astro-pure/utils'
 
-const { class: className, title } = Astro.props
+interface Props {
+  class?: string
+  title: string
+  href?: string
+}
+
+const { class: className, title, href } = Astro.props
 ---
 
 <section class={cn('flex flex-col gap-y-5 md:flex-row md:gap-y-0', className)}>
   <div class='text-xl font-medium md:min-w-36'>
-    <h2>{title}</h2>
+    <h2>
+      {href ? (
+        <a class='section-heading-link' href={href} aria-label={`查看${title}页面`}>
+          <span>{title}</span>
+          <span class='section-heading-arrow' aria-hidden='true'>→</span>
+        </a>
+      ) : title}
+    </h2>
   </div>
   <div class='flex flex-1 flex-col gap-y-3'>
     <slot />
   </div>
 </section>
+
+<style>
+  .section-heading-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    color: inherit;
+    text-decoration: none;
+    border-radius: .25rem;
+  }
+  .section-heading-arrow {
+    font-size: 1.125rem;
+    font-weight: 400;
+    opacity: .55;
+    transition: opacity .2s, transform .2s;
+  }
+  .section-heading-link:hover .section-heading-arrow,
+  .section-heading-link:focus-visible .section-heading-arrow {
+    opacity: 1;
+    transform: translateX(3px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .section-heading-arrow { transition: none; }
+    .section-heading-link:hover .section-heading-arrow,
+    .section-heading-link:focus-visible .section-heading-arrow { transform: none; }
+  }
+</style>
