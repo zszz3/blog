@@ -4,81 +4,73 @@ import { articleUrl } from '@/utils/articles'
 
 interface Props { posts: CollectionEntry<'blog'>[] }
 const { posts } = Astro.props
-const currentYear = new Date().getUTCFullYear()
-const years = [...new Set([currentYear, ...posts.map(post => post.data.publishDate.getUTCFullYear())])].sort((a, b) => b - a)
-const defaultYear = posts[0]?.data.publishDate.getUTCFullYear() ?? currentYear
-const panels = years.map(year => {
-  const entries = posts.filter(post => post.data.publishDate.getUTCFullYear() === year)
-  const activeDays = new Set(entries.map(post => post.data.publishDate.toISOString().slice(0, 10))).size
-  const days = new Map<string, number>()
-  for (const post of entries) {
-    const date = post.data.publishDate.toISOString().slice(0, 10)
-    days.set(date, (days.get(date) || 0) + 1)
-  }
-  const halves = [0, 6].map(firstMonth => {
-    const start = Date.UTC(year, firstMonth, 1)
-    const end = Date.UTC(year, firstMonth + 6, 1)
-    const offset = (new Date(start).getUTCDay() + 6) % 7
-    const dayCount = (end - start) / 86400000
-    const columns = Math.ceil((dayCount + offset) / 7)
-    const months = Array.from({ length: 6 }, (_, index) => {
-      const month = firstMonth + index
-      const column = Math.floor(((Date.UTC(year, month, 1) - start) / 86400000 + offset) / 7) + 1
-      return { month: month + 1, column }
-    })
-    const cells = Array.from({ length: columns * 7 }, (_, index) => {
-      const day = index - offset
-      if (day < 0 || day >= dayCount) return null
-      const date = new Date(start + day * 86400000).toISOString().slice(0, 10)
-      const count = days.get(date) || 0
-      return { date, count, label: `${date} · ${count} 篇文章` }
-    })
-    return { columns, months, cells }
-  })
-  return { year, entries, halves, activeDays }
-
+const now = new Date()
+const end = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+const firstMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 6, 1))
+const lastDay = new Date(Date.UTC(firstMonth.getUTCFullYear(), firstMonth.getUTCMonth() + 1, 0)).getUTCDate()
+const start = Date.UTC(firstMonth.getUTCFullYear(), firstMonth.getUTCMonth(), Math.min(now.getUTCDate(), lastDay))
+const startDate = new Date(start).toISOString().slice(0, 10)
+const endDate = new Date(end).toISOString().slice(0, 10)
+const entries = posts.filter(post => {
+  const date = post.data.publishDate.toISOString().slice(0, 10)
+  return date >= startDate && date <= endDate
 })
+const days = new Map<string, number>()
+for (const post of entries) {
+  const date = post.data.publishDate.toISOString().slice(0, 10)
+  days.set(date, (days.get(date) || 0) + 1)
+}
+const offset = (new Date(start).getUTCDay() + 6) % 7
+const dayCount = (end - start) / 86400000 + 1
+const columns = Math.ceil((dayCount + offset) / 7)
+const cells = Array.from({ length: columns * 7 }, (_, index) => {
+  const day = index - offset
+  if (day < 0 || day >= dayCount) return null
+  const date = new Date(start + day * 86400000).toISOString().slice(0, 10)
+  const count = days.get(date) || 0
+  return { date, count, label: `${date} · ${count} 篇文章` }
+})
+const months: { month: number; column: number }[] = []
+for (let time = start; time <= end; time += 86400000) {
+  const date = new Date(time)
+  const column = Math.floor(((time - start) / 86400000 + offset) / 7) + 1
+  if ((time === start || date.getUTCDate() === 1) && column <= columns - 2) {
+    if (months.length && column - months[months.length - 1]!.column < 3) months.pop()
+    months.push({ month: date.getUTCMonth() + 1, column })
+  }
+}
 ---
 
 <writing-heatmap class='writing-heatmap'>
   <section class='heatmap-card' aria-labelledby='writing-heatmap-title'>
     <div class='heatmap-heading'>
       <h2 id='writing-heatmap-title'>文章热力图</h2>
-      <select aria-label='热力图年份' data-heatmap-year>
-        {years.map(year => <option value={year} selected={year === defaultYear}>{year}</option>)}
-      </select>
+      <span class='heatmap-period' title={`${startDate} 至 ${endDate}`}>近半年</span>
     </div>
-    {panels.map(panel => (
-      <div data-year-panel={panel.year} hidden={panel.year !== defaultYear}>
-        <p class='heatmap-summary'><strong>{panel.entries.length}</strong> 篇文章<span>·</span><strong>{panel.activeDays}</strong> 个活跃日</p>
-        <div class='year-grid'>
-          {panel.halves.map(half => (
-            <div class='half-year' style={`--weeks: ${half.columns}`}>
-              <div class='month-labels' aria-hidden='true'>
-                {half.months.map(month => <span style={`grid-column: ${month.column} / span 4`}>{month.month}月</span>)}
-              </div>
-              <div class='heatmap-grid' role='group' aria-label={`${panel.year} 年 ${half.months[0]!.month} 至 ${half.months[5]!.month} 月，每格一天`}>
-                {half.cells.map(cell => cell?.count ? (
-                  <button type='button' class='heat-cell' data-level={Math.min(cell.count, 4)} data-bucket={cell.date} aria-label={cell.label} title={cell.label} aria-pressed='false' />
-                ) : <span class:list={['heat-cell', { 'missing-cell': !cell }]} data-level='0' data-date={cell?.date} title={cell?.label} aria-hidden='true' />)}
-              </div>
-            </div>
-          ))}
+    <div data-heatmap-content>
+      <p class='heatmap-summary'><strong>{entries.length}</strong> 篇文章<span>·</span><strong>{days.size}</strong> 个活跃日</p>
+      <div class='half-year' style={`--weeks: ${columns}`}>
+        <div class='month-labels' aria-hidden='true'>
+          {months.map(month => <span style={`grid-column: ${month.column} / span 3`}>{month.month}月</span>)}
         </div>
-        <div class='heatmap-legend' aria-label='颜色从浅到深表示每天发布文章的数量从少到多'>
-          <span>少</span>{[0, 1, 2, 3, 4].map(level => <i class='heat-cell' data-level={level} aria-hidden='true' />)}<span>多</span>
+        <div class='heatmap-grid' role='group' aria-label={`${startDate} 至 ${endDate}，每格一天`}>
+          {cells.map(cell => cell?.count ? (
+            <button type='button' class='heat-cell' data-level={Math.min(cell.count, 4)} data-bucket={cell.date} aria-label={cell.label} title={cell.label} aria-pressed='false' />
+          ) : <span class:list={['heat-cell', { 'missing-cell': !cell }]} data-level='0' data-date={cell?.date} title={cell?.label} aria-hidden='true' />)}
         </div>
-        <p class='heatmap-selection' data-selection aria-live='polite' hidden></p>
-        <ul class='heatmap-posts'>
-          {panel.entries.map(post => (
-            <li data-post-bucket={post.data.publishDate.toISOString().slice(0, 10)}>
-              <a href={articleUrl(post)}><span>{post.data.title}</span><time datetime={post.data.publishDate.toISOString()}>{post.data.publishDate.toISOString().slice(5, 10)}</time></a>
-            </li>
-          ))}
-        </ul>
       </div>
-    ))}
-    <noscript><p class='heatmap-fallback'>当前展示 {defaultYear} 年，<a href='/archives'>查看全部归档</a>。</p></noscript>
+      <div class='heatmap-legend' aria-label='颜色从浅到深表示每天发布文章的数量从少到多'>
+        <span>少</span>{[0, 1, 2, 3, 4].map(level => <i class='heat-cell' data-level={level} aria-hidden='true' />)}<span>多</span>
+      </div>
+      <p class='heatmap-selection' data-selection aria-live='polite' hidden></p>
+      {entries.length > 0 && <ul class='heatmap-posts'>
+        {entries.map(post => (
+          <li data-post-bucket={post.data.publishDate.toISOString().slice(0, 10)}>
+            <a href={articleUrl(post)}><span>{post.data.title}</span><time datetime={post.data.publishDate.toISOString()}>{post.data.publishDate.toISOString().slice(5, 10)}</time></a>
+          </li>
+        ))}
+      </ul>}
+    </div>
   </section>
 </writing-heatmap>
 
@@ -87,7 +79,6 @@ const panels = years.map(year => {
     connectedCallback() {
       if (this.dataset.ready) return
       this.dataset.ready = 'true'
-      const panels = [...this.querySelectorAll<HTMLElement>('[data-year-panel]')]
       const reset = (panel: HTMLElement) => {
         panel.querySelectorAll<HTMLButtonElement>('[data-bucket]').forEach(button => button.setAttribute('aria-pressed', 'false'))
         panel.querySelectorAll<HTMLElement>('[data-post-bucket]').forEach(post => { post.hidden = false })
@@ -95,17 +86,10 @@ const panels = years.map(year => {
         label.textContent = ''
         label.hidden = true
       }
-      this.querySelector<HTMLSelectElement>('[data-heatmap-year]')?.addEventListener('change', event => {
-        const year = (event.currentTarget as HTMLSelectElement).value
-        panels.forEach(panel => {
-          panel.hidden = panel.dataset.yearPanel !== year
-          reset(panel)
-        })
-      })
       this.addEventListener('click', event => {
         const button = (event.target as Element).closest<HTMLButtonElement>('button[data-bucket]')
         if (!button) return
-        const panel = button.closest<HTMLElement>('[data-year-panel]')!
+        const panel = button.closest<HTMLElement>('[data-heatmap-content]')!
         const wasSelected = button.getAttribute('aria-pressed') === 'true'
         reset(panel)
         if (wasSelected) return
@@ -126,11 +110,11 @@ const panels = years.map(year => {
   .heatmap-card { border: 1px solid hsl(var(--border) / .6); border-radius: 1rem; padding: 1.15rem; background: hsl(var(--background) / .94); box-shadow: 0 2px 3px hsl(var(--foreground) / .025); }
   .heatmap-heading { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
   h2 { margin: 0; font-size: 1.0625rem; font-weight: 600; }
-  select { max-width: 100%; padding: .25rem .35rem; border: 0; border-radius: .4rem; color: hsl(var(--muted-foreground)); background: hsl(var(--muted) / .65); font-size: .8125rem; cursor: pointer; }
+  .heatmap-period { color: hsl(var(--muted-foreground)); font-size: .8125rem; }
   .heatmap-summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem; margin: .75rem 0 1rem; font-size: .8125rem; color: hsl(var(--muted-foreground)); line-height: 1.7; }
   .heatmap-summary strong { color: hsl(var(--foreground)); font-weight: 600; }
   .heatmap-summary > span { margin: 0 .2rem; opacity: .5; }
-  .year-grid { display: grid; gap: 1rem; max-width: 30rem; }
+  .half-year { max-width: 30rem; }
   .month-labels, .heatmap-grid { display: grid; grid-template-columns: repeat(var(--weeks), minmax(0, 1fr)); gap: 2px; }
   .month-labels { margin-bottom: .4rem; color: hsl(var(--muted-foreground)); font-size: .75rem; line-height: 1.5; }
   .month-labels span { white-space: nowrap; }
@@ -144,7 +128,7 @@ const panels = years.map(year => {
   .missing-cell { visibility: hidden; }
   button.heat-cell { cursor: pointer; position: relative; }
   button.heat-cell:hover, button.heat-cell[aria-pressed='true'] { outline: 2px solid var(--heat-4); outline-offset: 1px; }
-  button:focus-visible, select:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 3px; }
+  button:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 3px; }
   .heatmap-legend { display: flex; align-items: center; justify-content: flex-end; gap: 3px; margin-top: .7rem; font-size: .75rem; color: hsl(var(--muted-foreground)); }
   .heatmap-legend > span { margin: 0 .15rem; }
   .heatmap-legend .heat-cell { width: .5rem; }
@@ -155,7 +139,5 @@ const panels = years.map(year => {
   .heatmap-posts a:hover { color: hsl(var(--primary)); }
   .heatmap-posts a span { overflow-wrap: anywhere; }
   .heatmap-posts time { flex-shrink: 0; color: hsl(var(--muted-foreground)); font-size: .75rem; font-variant-numeric: tabular-nums; }
-  .heatmap-fallback { margin-top: .75rem; font-size: .875rem; }
-  .heatmap-fallback a { text-decoration: underline; }
   [hidden] { display: none; }
 </style>
