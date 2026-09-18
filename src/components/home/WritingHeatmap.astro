@@ -10,19 +10,33 @@ const defaultYear = posts[0]?.data.publishDate.getUTCFullYear() ?? currentYear
 const panels = years.map(year => {
   const entries = posts.filter(post => post.data.publishDate.getUTCFullYear() === year)
   const activeDays = new Set(entries.map(post => post.data.publishDate.toISOString().slice(0, 10))).size
-  const months = Array.from({ length: 12 }, (_, month) => ({
-    month: month + 1,
-    cells: Array.from({ length: 5 }, (_, week) => {
-      const start = week * 7 + 1
-      const end = Math.min(start + 6, new Date(Date.UTC(year, month + 1, 0)).getUTCDate())
-      const count = entries.filter(post => {
-        const date = post.data.publishDate
-        return date.getUTCMonth() === month && date.getUTCDate() >= start && date.getUTCDate() <= end
-      }).length
-      return { bucket: `${month}-${week}`, count, exists: start <= end, label: `${year} 年 ${month + 1} 月 ${start}–${end} 日，发布 ${count} 篇文章` }
+  const days = new Map<string, number>()
+  for (const post of entries) {
+    const date = post.data.publishDate.toISOString().slice(0, 10)
+    days.set(date, (days.get(date) || 0) + 1)
+  }
+  const halves = [0, 6].map(firstMonth => {
+    const start = Date.UTC(year, firstMonth, 1)
+    const end = Date.UTC(year, firstMonth + 6, 1)
+    const offset = (new Date(start).getUTCDay() + 6) % 7
+    const dayCount = (end - start) / 86400000
+    const columns = Math.ceil((dayCount + offset) / 7)
+    const months = Array.from({ length: 6 }, (_, index) => {
+      const month = firstMonth + index
+      const column = Math.floor(((Date.UTC(year, month, 1) - start) / 86400000 + offset) / 7) + 1
+      return { month: month + 1, column }
     })
-  }))
-  return { year, entries, months, summary: `${year} 年发布 ${entries.length} 篇文章 · ${activeDays} 个活跃日` }
+    const cells = Array.from({ length: columns * 7 }, (_, index) => {
+      const day = index - offset
+      if (day < 0 || day >= dayCount) return null
+      const date = new Date(start + day * 86400000).toISOString().slice(0, 10)
+      const count = days.get(date) || 0
+      return { date, count, label: `${date} · ${count} 篇文章` }
+    })
+    return { columns, months, cells }
+  })
+  return { year, entries, halves, activeDays }
+
 })
 ---
 
@@ -36,25 +50,28 @@ const panels = years.map(year => {
     </div>
     {panels.map(panel => (
       <div data-year-panel={panel.year} hidden={panel.year !== defaultYear}>
-        <p class='heatmap-summary'>{panel.summary}</p>
-        <div class='heatmap-grid' role='group' aria-label={`${panel.year} 年文章发布热力图，每列一个月，每格最多七天`}>
-          {panel.months.map(month => (
-            <div class='heatmap-month'>
-              <span class='month-label' aria-label={`${month.month} 月`}>{month.month}</span>
-              {month.cells.map(cell => cell.count ? (
-                <button type='button' class='heat-cell' data-level={Math.min(cell.count, 4)} data-bucket={cell.bucket} aria-label={cell.label} title={cell.label} aria-pressed='false' />
-              ) : <span class:list={['heat-cell', { 'missing-cell': !cell.exists }]} data-level='0' title={cell.exists ? cell.label : undefined} aria-hidden='true' />)}
+        <p class='heatmap-summary'><strong>{panel.entries.length}</strong> 篇文章<span>·</span><strong>{panel.activeDays}</strong> 个活跃日</p>
+        <div class='year-grid'>
+          {panel.halves.map(half => (
+            <div class='half-year' style={`--weeks: ${half.columns}`}>
+              <div class='month-labels' aria-hidden='true'>
+                {half.months.map(month => <span style={`grid-column: ${month.column} / span 4`}>{month.month}月</span>)}
+              </div>
+              <div class='heatmap-grid' role='group' aria-label={`${panel.year} 年 ${half.months[0]!.month} 至 ${half.months[5]!.month} 月，每格一天`}>
+                {half.cells.map(cell => cell?.count ? (
+                  <button type='button' class='heat-cell' data-level={Math.min(cell.count, 4)} data-bucket={cell.date} aria-label={cell.label} title={cell.label} aria-pressed='false' />
+                ) : <span class:list={['heat-cell', { 'missing-cell': !cell }]} data-level='0' data-date={cell?.date} title={cell?.label} aria-hidden='true' />)}
+              </div>
             </div>
           ))}
         </div>
-        <div class='heatmap-legend' aria-label='颜色从浅到深表示文章数量从少到多'>
-          <span>每格最多 7 天</span>
-          <div><span>少</span>{[0, 1, 2, 3, 4].map(level => <i class='heat-cell' data-level={level} aria-hidden='true' />)}<span>多</span></div>
+        <div class='heatmap-legend' aria-label='颜色从浅到深表示每天发布文章的数量从少到多'>
+          <span>少</span>{[0, 1, 2, 3, 4].map(level => <i class='heat-cell' data-level={level} aria-hidden='true' />)}<span>多</span>
         </div>
-        <p class='heatmap-selection' data-selection aria-live='polite'>{panel.entries.length ? '全年文章' : '这一年还没有发布文章'}</p>
+        <p class='heatmap-selection' data-selection aria-live='polite' hidden></p>
         <ul class='heatmap-posts'>
           {panel.entries.map(post => (
-            <li data-post-bucket={`${post.data.publishDate.getUTCMonth()}-${Math.floor((post.data.publishDate.getUTCDate() - 1) / 7)}`}>
+            <li data-post-bucket={post.data.publishDate.toISOString().slice(0, 10)}>
               <a href={articleUrl(post)}><span>{post.data.title}</span><time datetime={post.data.publishDate.toISOString()}>{post.data.publishDate.toISOString().slice(5, 10)}</time></a>
             </li>
           ))}
@@ -75,7 +92,8 @@ const panels = years.map(year => {
         panel.querySelectorAll<HTMLButtonElement>('[data-bucket]').forEach(button => button.setAttribute('aria-pressed', 'false'))
         panel.querySelectorAll<HTMLElement>('[data-post-bucket]').forEach(post => { post.hidden = false })
         const label = panel.querySelector<HTMLElement>('[data-selection]')!
-        label.textContent = panel.querySelector('[data-post-bucket]') ? '全年文章' : '这一年还没有发布文章'
+        label.textContent = ''
+        label.hidden = true
       }
       this.querySelector<HTMLSelectElement>('[data-heatmap-year]')?.addEventListener('change', event => {
         const year = (event.currentTarget as HTMLSelectElement).value
@@ -93,7 +111,9 @@ const panels = years.map(year => {
         if (wasSelected) return
         button.setAttribute('aria-pressed', 'true')
         panel.querySelectorAll<HTMLElement>('[data-post-bucket]').forEach(post => { post.hidden = post.dataset.postBucket !== button.dataset.bucket })
-        panel.querySelector<HTMLElement>('[data-selection]')!.textContent = button.getAttribute('aria-label')
+        const label = panel.querySelector<HTMLElement>('[data-selection]')!
+        label.textContent = button.getAttribute('aria-label')
+        label.hidden = false
       })
     }
   }
@@ -101,35 +121,40 @@ const panels = years.map(year => {
 </script>
 
 <style>
-  .writing-heatmap { display: block; min-width: 0; --heat-0: #edf2ef; --heat-1: #c8e7d7; --heat-2: #97d0b5; --heat-3: #60b58e; --heat-4: #347d5d; }
-  :global(.dark) .writing-heatmap { --heat-0: #29362f; --heat-1: #365c47; --heat-2: #448164; --heat-3: #65ad86; --heat-4: #91d8ad; }
-  .heatmap-card { border: 1px solid hsl(var(--border) / .8); border-radius: 1.15rem; padding: 1rem; background: hsl(var(--background) / .85); box-shadow: 0 5px 24px hsl(var(--primary) / .035); }
+  .writing-heatmap { display: block; min-width: 0; --heat-0: #edf1ef; --heat-1: #a8d5bb; --heat-2: #78b894; --heat-3: #4b976e; --heat-4: #2f7050; }
+  :global(.dark) .writing-heatmap { --heat-0: #29352f; --heat-1: #3e7556; --heat-2: #61a078; --heat-3: #8bc89f; --heat-4: #b4e0bd; }
+  .heatmap-card { border: 1px solid hsl(var(--border) / .6); border-radius: 1rem; padding: 1.15rem; background: hsl(var(--background) / .94); box-shadow: 0 2px 3px hsl(var(--foreground) / .025); }
   .heatmap-heading { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
-  h2 { margin: 0; font-size: 1.125rem; font-weight: 500; }
-  select { padding: .35rem .4rem; border: 1px solid hsl(var(--border)); border-radius: .4rem; color: hsl(var(--foreground)); background: hsl(var(--background)); font-size: .875rem; }
-  .heatmap-summary { margin: .9rem 0; font-size: .875rem; color: hsl(var(--muted-foreground)); line-height: 1.7; }
-  .heatmap-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; }
-  .heatmap-month { display: grid; gap: 3px; }
-  .month-label { text-align: center; font-size: .75rem; line-height: 1.5; color: hsl(var(--muted-foreground)); }
-  .heat-cell { display: block; min-width: 0; width: 100%; aspect-ratio: 1; border: 1px solid hsl(var(--foreground) / .025); border-radius: 3px; padding: 0; }
+  h2 { margin: 0; font-size: 1.0625rem; font-weight: 600; }
+  select { max-width: 100%; padding: .25rem .35rem; border: 0; border-radius: .4rem; color: hsl(var(--muted-foreground)); background: hsl(var(--muted) / .65); font-size: .8125rem; cursor: pointer; }
+  .heatmap-summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem; margin: .75rem 0 1rem; font-size: .8125rem; color: hsl(var(--muted-foreground)); line-height: 1.7; }
+  .heatmap-summary strong { color: hsl(var(--foreground)); font-weight: 600; }
+  .heatmap-summary > span { margin: 0 .2rem; opacity: .5; }
+  .year-grid { display: grid; gap: 1rem; max-width: 30rem; }
+  .month-labels, .heatmap-grid { display: grid; grid-template-columns: repeat(var(--weeks), minmax(0, 1fr)); gap: 2px; }
+  .month-labels { margin-bottom: .4rem; color: hsl(var(--muted-foreground)); font-size: .75rem; line-height: 1.5; }
+  .month-labels span { white-space: nowrap; }
+  .heatmap-grid { grid-template-rows: repeat(7, auto); grid-auto-flow: column; }
+  .heat-cell { display: block; min-width: 0; width: 100%; aspect-ratio: 1; border: 0; border-radius: 2px; padding: 0; }
   [data-level='0'] { background: var(--heat-0); }
   [data-level='1'] { background: var(--heat-1); }
   [data-level='2'] { background: var(--heat-2); }
   [data-level='3'] { background: var(--heat-3); }
   [data-level='4'] { background: var(--heat-4); }
   .missing-cell { visibility: hidden; }
-  button.heat-cell { cursor: pointer; }
+  button.heat-cell { cursor: pointer; position: relative; }
   button.heat-cell:hover, button.heat-cell[aria-pressed='true'] { outline: 2px solid var(--heat-4); outline-offset: 1px; }
-  button:focus-visible, select:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
-  .heatmap-legend { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .4rem; margin-top: .75rem; font-size: .75rem; color: hsl(var(--muted-foreground)); }
-  .heatmap-legend > div { display: flex; align-items: center; gap: 3px; }
-  .heatmap-legend .heat-cell { width: .6rem; }
-  .heatmap-selection { margin: .9rem 0 .35rem; padding-top: .75rem; border-top: 1px solid hsl(var(--border)); font-size: .875rem; line-height: 1.7; color: hsl(var(--muted-foreground)); }
-  .heatmap-posts { list-style: none; padding: 0; margin: 0; }
-  .heatmap-posts a { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; padding: .4rem 0; font-size: .875rem; }
+  button:focus-visible, select:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 3px; }
+  .heatmap-legend { display: flex; align-items: center; justify-content: flex-end; gap: 3px; margin-top: .7rem; font-size: .75rem; color: hsl(var(--muted-foreground)); }
+  .heatmap-legend > span { margin: 0 .15rem; }
+  .heatmap-legend .heat-cell { width: .5rem; }
+  .heatmap-selection { margin: .8rem 0 0; font-size: .8125rem; color: hsl(var(--muted-foreground)); line-height: 1.6; }
+  .heatmap-posts { list-style: none; padding: .65rem 0 0; margin: .8rem 0 0; border-top: 1px solid hsl(var(--border) / .6); }
+  .heatmap-posts:empty { display: none; }
+  .heatmap-posts a { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; padding: .35rem 0; font-size: .875rem; }
   .heatmap-posts a:hover { color: hsl(var(--primary)); }
   .heatmap-posts a span { overflow-wrap: anywhere; }
-  .heatmap-posts time { flex-shrink: 0; color: hsl(var(--muted-foreground)); font-size: .75rem; }
+  .heatmap-posts time { flex-shrink: 0; color: hsl(var(--muted-foreground)); font-size: .75rem; font-variant-numeric: tabular-nums; }
   .heatmap-fallback { margin-top: .75rem; font-size: .875rem; }
   .heatmap-fallback a { text-decoration: underline; }
   [hidden] { display: none; }
