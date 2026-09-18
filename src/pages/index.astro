@@ -1,12 +1,11 @@
 ---
 import { articleUrl, getArticles } from '@/utils/articles'
-import { Image } from 'astro:assets'
 import { getUniqueTagsWithCount } from 'astro-pure/server'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import ProjectCard from '@/components/home/ProjectCard.astro'
 import Section from '@/components/home/Section.astro'
-import avatar from '@/assets/avatar.jpg'
-import config from '@/site-config'
+import ProfileSidebar from '@/components/home/ProfileSidebar.astro'
+import WritingHeatmap from '@/components/home/WritingHeatmap.astro'
 
 const allPosts = await getArticles('blog')
 const posts = allPosts.slice(0, 6)
@@ -15,39 +14,11 @@ const latestPost = allPosts[0]
 const dateFormat = new Intl.DateTimeFormat('zh-CN', {
   year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
 })
-const interests = ['Backend', 'Agent Harness', 'ASI', '3D Gaussian Splatting']
 ---
 <PageLayout meta={{ title: '首页' }} highlightColor='#dbe9ff' wide>
   <main class='home-layout'>
-    <aside class='profile-column animate' aria-label='个人介绍与文章标签'>
-      <div class='profile-panel home-panel'>
-      <div id='content-header' class='profile-header'>
-        <Image src={avatar} alt='我借此火的头像' class='profile-avatar' loading='eager' fetchpriority='high' />
-        <h1>{config.author}</h1>
-      </div>
-      <Section title='关于我' href='/about' stacked>
-        <p class='profile-school'>🏫 <strong>Southeast University</strong></p>
-        <div class='profile-focus'>
-          <p class='focus-label'>🎯 Focus</p>
-          <ul class='focus-list' aria-label='关注方向'>
-            {interests.map(interest => <li>{interest}</li>)}
-          </ul>
-        </div>
-      </Section>
-      </div>
-      <div class='home-panel'>
-        <Section title='文章标签' href='/tags' stacked>
-          <ul class='article-tags'>
-            {tags.map(([tag, count]) => (
-              <li>
-                <a href={`/tags/${encodeURIComponent(tag)}`} aria-label={`${tag}，${count} 篇文章`}>
-                  <span>{tag}</span><span class='tag-count' aria-hidden='true'>{count}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </Section>
-      </div>
+    <aside class='profile-column animate' aria-label='个人介绍、标签与分类'>
+      <ProfileSidebar posts={allPosts} />
     </aside>
 
     <div id='content' class='articles-column animate'>
@@ -74,7 +45,7 @@ const interests = ['Backend', 'Agent Harness', 'ASI', '3D Gaussian Splatting']
       </Section>
     </div>
 
-    <aside class='discovery-column animate' aria-label='最近动态与站点概览'>
+    <aside class='discovery-column animate' aria-label='最近动态、文章热力图与站点概览'>
       <section class='home-panel recent-activity' aria-labelledby='recent-activity-title'>
         <h2 id='recent-activity-title'>最近动态</h2>
         {posts.length ? (
@@ -88,6 +59,7 @@ const interests = ['Backend', 'Agent Harness', 'ASI', '3D Gaussian Splatting']
           </ol>
         ) : <p class='activity-empty'>暂无动态</p>}
       </section>
+      <WritingHeatmap posts={allPosts} />
       <section class='home-panel site-overview' aria-labelledby='site-overview-title'>
         <h2 id='site-overview-title'>站点概览</h2>
         <dl>
@@ -120,16 +92,6 @@ const interests = ['Backend', 'Agent Harness', 'ASI', '3D Gaussian Splatting']
     padding: 1.4rem;
     box-shadow: 0 5px 24px hsl(var(--primary) / .035);
   }
-  .profile-header { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; margin-bottom: 1.75rem; }
-  .profile-avatar { width: 7rem; height: 7rem; object-fit: cover; border: 1px solid; border-radius: 50%; padding: .25rem; }
-  .profile-header h1 { font-size: 1.5rem; font-weight: 600; line-height: 1.4; }
-  .profile-school { font-size: 1rem; line-height: 1.7; }
-  .profile-school strong { font-weight: 500; }
-  .profile-focus { margin-top: .65rem; }
-  .focus-label { color: hsl(var(--muted-foreground)); font-size: .875rem; margin-bottom: .7rem; }
-  .focus-list { display: flex; flex-wrap: wrap; gap: .5rem; padding: 0; margin: 0; list-style: none; }
-  .focus-list li { padding: .3rem .6rem; border-radius: .45rem; background: hsl(var(--blue-surface)); color: hsl(var(--primary)); font-size: .875rem; overflow-wrap: anywhere; }
-  .focus-list li:last-child { background: hsl(var(--orange-surface)); color: hsl(var(--accent-ink)); }
   .articles-column { display: flex; flex-direction: column; gap: 1.75rem; min-width: 0; }
   .articles-column :global(section > div:first-child) { padding: 1.1rem 1.4rem; border: 1px solid hsl(var(--border) / .8); border-radius: 1rem; background: hsl(var(--background) / .85); }
   .home-articles { display: grid; gap: 1rem; list-style: none; margin: 0; padding: 0; }
@@ -144,10 +106,6 @@ const interests = ['Backend', 'Agent Harness', 'ASI', '3D Gaussian Splatting']
   .home-projects :global(.project-card-fg) { padding: 5.5rem 1rem 1rem; }
   .home-projects :global(.project-card-fg p) { font-size: .875rem; }
   .profile-column, .discovery-column { display: grid; gap: 1.25rem; }
-  .article-tags { display: flex; flex-wrap: wrap; gap: .6rem; list-style: none; margin: 0; padding: 0; }
-  .article-tags a { display: inline-flex; align-items: center; gap: .6rem; min-height: 2.75rem; padding: .4rem .7rem; border: 1px solid hsl(var(--primary) / .2); border-radius: .5rem; color: hsl(var(--primary)); background: hsl(var(--blue-surface)); font-size: .9375rem; }
-  .article-tags a:hover { border-color: hsl(var(--primary) / .6); text-decoration: underline; text-underline-offset: .2em; }
-  .tag-count { font-size: .8125rem; color: hsl(var(--muted-foreground)); }
   .site-overview h2, .recent-activity h2 { margin: 0 0 1.25rem; font-size: 1.125rem; font-weight: 500; }
   .activity-list { list-style: none; margin: 0; padding: 0; }
   .activity-item { padding: 0 0 1.2rem .9rem; border-left: 2px solid hsl(var(--primary) / .2); }
@@ -162,11 +120,6 @@ const interests = ['Backend', 'Agent Harness', 'ASI', '3D Gaussian Splatting']
   .site-overview .latest-published { grid-column: 1 / -1; border-top: 1px solid hsl(var(--border)); padding-top: 1rem; }
   .latest-published dd { font-size: .9375rem; }
   @media (min-width: 560px) {
-    .home-projects { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  }
-  @media (min-width: 640px) and (max-width: 899px) {
-    .profile-panel { display: grid; grid-template-columns: 12rem minmax(0, 1fr); gap: 2rem; align-items: center; }
-    .profile-header { margin-bottom: 0; }
     .home-projects { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   @media (min-width: 900px) {

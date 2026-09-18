@@ -1,0 +1,96 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import { Image } from 'astro:assets'
+import { getUniqueTagsWithCount } from 'astro-pure/server'
+import { Icon } from 'astro-pure/user'
+import avatar from '@/assets/avatar.jpg'
+import config from '@/site-config'
+
+interface Props { posts: CollectionEntry<'blog'>[] }
+const { posts } = Astro.props
+const tags = getUniqueTagsWithCount(posts)
+const categories = new Map<string, number>()
+for (const post of posts) {
+  if (post.data.category) categories.set(post.data.category, (categories.get(post.data.category) || 0) + 1)
+}
+const sortedCategories = [...categories].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'zh-CN'))
+---
+
+<div class='sidebar-cards'>
+  <section class='sidebar-card profile-card' aria-label='个人介绍'>
+    <a class='avatar-link' href='/about' aria-label='了解我借此火'>
+      <Image src={avatar} alt='我借此火的头像' class='profile-avatar' loading='eager' fetchpriority='high' />
+    </a>
+    <h1>{config.author}</h1>
+    <p class='signature'>Southeast University</p>
+    <nav class='social-links' aria-label='我的社交链接'>
+      {(config.footer.social || []).map(({ label, href, icon }) => (
+        <a href={href} aria-label={label} title={label} rel='me'>
+          <Icon name={icon} class='social-icon' />
+        </a>
+      ))}
+    </nav>
+  </section>
+
+  <section class='sidebar-card announcement' aria-labelledby='announcement-title'>
+    <h2 id='announcement-title'>公告</h2>
+    <p>欢迎来到我的博客！这里记录学习笔记与项目实践。</p>
+    <a class='about-link' href='/about'>关于我</a>
+  </section>
+
+  <section class='sidebar-card' aria-labelledby='sidebar-tags-title'>
+    <h2 id='sidebar-tags-title'>标签</h2>
+    <ul class='tag-list'>
+      {tags.slice(0, 10).map(([tag, count]) => (
+        <li><a href={`/tags/${encodeURIComponent(tag)}`} aria-label={`${tag}，${count} 篇文章`}>{tag}</a></li>
+      ))}
+    </ul>
+    <a class='more-link' href='/tags'><span aria-hidden='true'>•••</span> 更多</a>
+  </section>
+
+  <section class='sidebar-card categories' aria-labelledby='sidebar-categories-title'>
+    <h2 id='sidebar-categories-title'>分类</h2>
+    <ul class='category-list'>
+      {sortedCategories.slice(0, 3).map(([category, count]) => (
+        <li><a href={`/search?category=${encodeURIComponent(category)}`}>
+          <span>{category}</span><span class='category-count'>{count}</span>
+        </a></li>
+      ))}
+    </ul>
+    <a class='more-link' href='/search'><span aria-hidden='true'>•••</span> 更多</a>
+  </section>
+</div>
+
+<style>
+  .sidebar-cards { --sidebar-accent: #43876e; --sidebar-soft: #e5f3ec; display: grid; gap: 1rem; }
+  :global(.dark) .sidebar-cards { --sidebar-accent: #86c7aa; --sidebar-soft: #263c34; }
+  .sidebar-card { padding: 1rem; border-radius: 1rem; background: hsl(var(--background) / .94); box-shadow: 0 2px 3px hsl(var(--foreground) / .045); border: 1px solid hsl(var(--border) / .38); min-width: 0; }
+  .profile-card { padding: .75rem .75rem 1rem; text-align: center; }
+  .avatar-link { display: block; overflow: hidden; border-radius: .75rem; }
+  .profile-avatar { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; }
+  .profile-card h1 { margin: .9rem 0 0; font-size: 1.25rem; font-weight: 700; line-height: 1.5; overflow-wrap: anywhere; }
+  .profile-card h1::after { content: ''; display: block; width: 1.25rem; height: .25rem; margin: .15rem auto 0; border-radius: 1rem; background: #60af90; }
+  .signature { color: hsl(var(--muted-foreground)); margin: .6rem 0; font-size: 1rem; line-height: 1.65; }
+  .social-links { display: flex; justify-content: center; flex-wrap: wrap; gap: .5rem; }
+  .social-links a { display: flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; border-radius: .5rem; background: var(--sidebar-soft); color: var(--sidebar-accent); }
+  .social-links :global(.social-icon) { width: 1.4rem; height: 1.4rem; }
+  h2 { display: flex; align-items: center; gap: .75rem; margin: 0 0 .65rem; font-size: 1.125rem; font-weight: 700; line-height: 1.5; }
+  h2::before { content: ''; flex: 0 0 .25rem; height: 1rem; border-radius: 1rem; background: #60af90; }
+  .announcement p { margin: 0 0 .6rem; font-size: 1rem; line-height: 1.75; }
+  .about-link { display: inline-block; border-radius: .4rem; padding: .35rem .75rem; font-size: .875rem; font-weight: 600; color: var(--sidebar-accent); background: var(--sidebar-soft); }
+  .tag-list, .category-list { padding: 0; margin: 0; list-style: none; }
+  .tag-list { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .tag-list a { display: block; padding: .4rem .75rem; border-radius: 2rem; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: .875rem; line-height: 1.4; }
+  .category-list a { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .4rem .5rem; border-radius: .5rem; font-size: 1rem; }
+  .category-count { padding: .25rem .6rem; border-radius: .45rem; font-size: .875rem; color: var(--sidebar-accent); background: var(--sidebar-soft); }
+  .more-link { display: flex; align-items: center; justify-content: center; gap: .65rem; padding-top: .8rem; color: var(--sidebar-accent); font-size: 1rem; font-weight: 500; }
+  .more-link span { letter-spacing: .1rem; }
+  a:hover { color: var(--sidebar-accent); }
+  .social-links a:hover, .about-link:hover, .category-list a:hover { background: var(--sidebar-soft); filter: brightness(.97); }
+  .tag-list a:hover { color: var(--sidebar-accent); background: var(--sidebar-soft); }
+  a:focus-visible { outline: 2px solid var(--sidebar-accent); outline-offset: 3px; }
+  @media (min-width: 560px) and (max-width: 899px) {
+    .sidebar-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+    .profile-card { grid-row: span 3; }
+  }
+</style>
