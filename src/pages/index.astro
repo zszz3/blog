@@ -19,7 +19,8 @@ const interests = ['Backend', 'Agent Harness', 'ASI', '3D Gaussian Splatting']
 ---
 <PageLayout meta={{ title: '首页' }} highlightColor='#dbe9ff' wide>
   <main class='home-layout'>
-    <aside class='profile-panel home-panel animate' aria-label='个人介绍'>
+    <aside class='profile-column animate' aria-label='个人介绍与文章标签'>
+      <div class='profile-panel home-panel'>
       <div id='content-header' class='profile-header'>
         <Image src={avatar} alt='我借此火的头像' class='profile-avatar' loading='eager' fetchpriority='high' />
         <h1>{config.author}</h1>
@@ -33,6 +34,20 @@ const interests = ['Backend', 'Agent Harness', 'ASI', '3D Gaussian Splatting']
           </ul>
         </div>
       </Section>
+      </div>
+      <div class='home-panel'>
+        <Section title='文章标签' href='/tags' stacked>
+          <ul class='article-tags'>
+            {tags.map(([tag, count]) => (
+              <li>
+                <a href={`/tags/${encodeURIComponent(tag)}`} aria-label={`${tag}，${count} 篇文章`}>
+                  <span>{tag}</span><span class='tag-count' aria-hidden='true'>{count}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      </div>
     </aside>
 
     <div id='content' class='articles-column animate'>
@@ -59,20 +74,20 @@ const interests = ['Backend', 'Agent Harness', 'ASI', '3D Gaussian Splatting']
       </Section>
     </div>
 
-    <aside class='discovery-column animate' aria-label='文章导航与站点概览'>
-      <div class='home-panel'>
-        <Section title='文章标签' href='/tags' stacked>
-          <ul class='article-tags'>
-            {tags.map(([tag, count]) => (
-              <li>
-                <a href={`/tags/${encodeURIComponent(tag)}`} aria-label={`${tag}，${count} 篇文章`}>
-                  <span>{tag}</span><span class='tag-count' aria-hidden='true'>{count}</span>
-                </a>
+    <aside class='discovery-column animate' aria-label='最近动态与站点概览'>
+      <section class='home-panel recent-activity' aria-labelledby='recent-activity-title'>
+        <h2 id='recent-activity-title'>最近动态</h2>
+        {posts.length ? (
+          <ol class='activity-list'>
+            {posts.slice(0, 4).map(post => (
+              <li class='activity-item'>
+                <time datetime={post.data.publishDate.toISOString()}>{dateFormat.format(post.data.publishDate)}</time>
+                <p>发布了文章 <a href={articleUrl(post)}>{post.data.title}</a></p>
               </li>
             ))}
-          </ul>
-        </Section>
-      </div>
+          </ol>
+        ) : <p class='activity-empty'>暂无动态</p>}
+      </section>
       <section class='home-panel site-overview' aria-labelledby='site-overview-title'>
         <h2 id='site-overview-title'>站点概览</h2>
         <dl>
@@ -128,12 +143,19 @@ const interests = ['Backend', 'Agent Harness', 'ASI', '3D Gaussian Splatting']
   .home-projects { display: grid; gap: 1rem; }
   .home-projects :global(.project-card-fg) { padding: 5.5rem 1rem 1rem; }
   .home-projects :global(.project-card-fg p) { font-size: .875rem; }
-  .discovery-column { display: grid; gap: 1.25rem; }
+  .profile-column, .discovery-column { display: grid; gap: 1.25rem; }
   .article-tags { display: flex; flex-wrap: wrap; gap: .6rem; list-style: none; margin: 0; padding: 0; }
   .article-tags a { display: inline-flex; align-items: center; gap: .6rem; min-height: 2.75rem; padding: .4rem .7rem; border: 1px solid hsl(var(--primary) / .2); border-radius: .5rem; color: hsl(var(--primary)); background: hsl(var(--blue-surface)); font-size: .9375rem; }
   .article-tags a:hover { border-color: hsl(var(--primary) / .6); text-decoration: underline; text-underline-offset: .2em; }
   .tag-count { font-size: .8125rem; color: hsl(var(--muted-foreground)); }
-  .site-overview h2 { margin: 0 0 1.25rem; font-size: 1.125rem; font-weight: 500; }
+  .site-overview h2, .recent-activity h2 { margin: 0 0 1.25rem; font-size: 1.125rem; font-weight: 500; }
+  .activity-list { list-style: none; margin: 0; padding: 0; }
+  .activity-item { padding: 0 0 1.2rem .9rem; border-left: 2px solid hsl(var(--primary) / .2); }
+  .activity-item:last-child { padding-bottom: 0; }
+  .activity-item time { display: block; margin-bottom: .4rem; font-size: .875rem; color: hsl(var(--muted-foreground)); }
+  .activity-item p, .activity-empty { font-size: .9375rem; line-height: 1.8; overflow-wrap: anywhere; }
+  .activity-item a { color: hsl(var(--primary)); text-decoration: underline; text-decoration-color: hsl(var(--primary) / .4); text-underline-offset: .2em; }
+  .activity-item a:hover { text-decoration-color: currentColor; }
   .site-overview dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem; margin: 0; }
   .site-overview dt { font-size: .875rem; color: hsl(var(--muted-foreground)); }
   .site-overview dd { margin: .3rem 0 0; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
@@ -149,13 +171,13 @@ const interests = ['Backend', 'Agent Harness', 'ASI', '3D Gaussian Splatting']
   }
   @media (min-width: 900px) {
     .home-layout { grid-template-columns: 15rem minmax(0, 1fr); }
-    .profile-panel { grid-column: 1; grid-row: 1 / span 2; }
+    .profile-column { grid-column: 1; grid-row: 1 / span 2; }
     .articles-column, .discovery-column { grid-column: 2; }
     .home-projects { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   @media (min-width: 1200px) {
     .home-layout { grid-template-columns: minmax(14.5rem, 1fr) minmax(0, 2.3fr) minmax(16rem, 1.12fr); }
-    .profile-panel { grid-row: auto; }
+    .profile-column { grid-row: auto; }
     .discovery-column { grid-column: 3; }
   }
   @media (prefers-reduced-motion: reduce) {
