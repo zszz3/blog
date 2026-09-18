@@ -1,13 +1,17 @@
 ---
 import { articleUrl, getArticles } from '@/utils/articles'
 import { Image } from 'astro:assets'
+import { getUniqueTagsWithCount } from 'astro-pure/server'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import ProjectCard from '@/components/home/ProjectCard.astro'
 import Section from '@/components/home/Section.astro'
 import avatar from '@/assets/avatar.jpg'
 import config from '@/site-config'
 
-const posts = (await getArticles('blog')).slice(0, 6)
+const allPosts = await getArticles('blog')
+const posts = allPosts.slice(0, 6)
+const tags = getUniqueTagsWithCount(allPosts)
+const latestPost = allPosts[0]
 const dateFormat = new Intl.DateTimeFormat('zh-CN', {
   year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
 })
@@ -47,15 +51,39 @@ const interests = ['Backend', 'Agent Harness', 'ASI', '3D Gaussian Splatting']
           ))}
         </ul>
       </Section>
-    </div>
-
-    <aside class='projects-column home-panel animate' aria-label='项目与归档'>
       <Section title='项目与归档' href='/projects' stacked>
         <div class='home-projects'>
           <ProjectCard href='/projects' heading='AgentRecall' subheading='Author · Agent 资产层' imagePath='/src/assets/projects/1.avif' />
           <ProjectCard href='/archives' heading='文章归档' subheading='按时间查阅文章' imagePath='/src/assets/projects/4.avif' />
         </div>
       </Section>
+    </div>
+
+    <aside class='discovery-column animate' aria-label='文章导航与站点概览'>
+      <div class='home-panel'>
+        <Section title='文章标签' href='/tags' stacked>
+          <ul class='article-tags'>
+            {tags.map(([tag, count]) => (
+              <li>
+                <a href={`/tags/${encodeURIComponent(tag)}`} aria-label={`${tag}，${count} 篇文章`}>
+                  <span>{tag}</span><span class='tag-count' aria-hidden='true'>{count}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      </div>
+      <section class='home-panel site-overview' aria-labelledby='site-overview-title'>
+        <h2 id='site-overview-title'>站点概览</h2>
+        <dl>
+          <div><dt>文章</dt><dd>{allPosts.length}</dd></div>
+          <div><dt>标签</dt><dd>{tags.length}</dd></div>
+          {latestPost && <div class='latest-published'>
+            <dt>最近发布</dt>
+            <dd><time datetime={latestPost.data.publishDate.toISOString()}>{latestPost.data.publishDate.toISOString().slice(0, 10)}</time></dd>
+          </div>}
+        </dl>
+      </section>
     </aside>
   </main>
 </PageLayout>
@@ -87,7 +115,7 @@ const interests = ['Backend', 'Agent Harness', 'ASI', '3D Gaussian Splatting']
   .focus-list { display: flex; flex-wrap: wrap; gap: .5rem; padding: 0; margin: 0; list-style: none; }
   .focus-list li { padding: .3rem .6rem; border-radius: .45rem; background: hsl(var(--blue-surface)); color: hsl(var(--primary)); font-size: .875rem; overflow-wrap: anywhere; }
   .focus-list li:last-child { background: hsl(var(--orange-surface)); color: hsl(var(--accent-ink)); }
-  .articles-column { min-width: 0; }
+  .articles-column { display: flex; flex-direction: column; gap: 1.75rem; min-width: 0; }
   .articles-column :global(section > div:first-child) { padding: 1.1rem 1.4rem; border: 1px solid hsl(var(--border) / .8); border-radius: 1rem; background: hsl(var(--background) / .85); }
   .home-articles { display: grid; gap: 1rem; list-style: none; margin: 0; padding: 0; }
   .home-article { border: 1px solid hsl(var(--border) / .85); border-radius: 1.15rem; overflow: hidden; background: hsl(var(--background) / .92); transition: border-color .2s, box-shadow .2s; }
@@ -100,6 +128,20 @@ const interests = ['Backend', 'Agent Harness', 'ASI', '3D Gaussian Splatting']
   .home-projects { display: grid; gap: 1rem; }
   .home-projects :global(.project-card-fg) { padding: 5.5rem 1rem 1rem; }
   .home-projects :global(.project-card-fg p) { font-size: .875rem; }
+  .discovery-column { display: grid; gap: 1.25rem; }
+  .article-tags { display: flex; flex-wrap: wrap; gap: .6rem; list-style: none; margin: 0; padding: 0; }
+  .article-tags a { display: inline-flex; align-items: center; gap: .6rem; min-height: 2.75rem; padding: .4rem .7rem; border: 1px solid hsl(var(--primary) / .2); border-radius: .5rem; color: hsl(var(--primary)); background: hsl(var(--blue-surface)); font-size: .9375rem; }
+  .article-tags a:hover { border-color: hsl(var(--primary) / .6); text-decoration: underline; text-underline-offset: .2em; }
+  .tag-count { font-size: .8125rem; color: hsl(var(--muted-foreground)); }
+  .site-overview h2 { margin: 0 0 1.25rem; font-size: 1.125rem; font-weight: 500; }
+  .site-overview dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem; margin: 0; }
+  .site-overview dt { font-size: .875rem; color: hsl(var(--muted-foreground)); }
+  .site-overview dd { margin: .3rem 0 0; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+  .site-overview .latest-published { grid-column: 1 / -1; border-top: 1px solid hsl(var(--border)); padding-top: 1rem; }
+  .latest-published dd { font-size: .9375rem; }
+  @media (min-width: 560px) {
+    .home-projects { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
   @media (min-width: 640px) and (max-width: 899px) {
     .profile-panel { display: grid; grid-template-columns: 12rem minmax(0, 1fr); gap: 2rem; align-items: center; }
     .profile-header { margin-bottom: 0; }
@@ -108,14 +150,13 @@ const interests = ['Backend', 'Agent Harness', 'ASI', '3D Gaussian Splatting']
   @media (min-width: 900px) {
     .home-layout { grid-template-columns: 15rem minmax(0, 1fr); }
     .profile-panel { grid-column: 1; grid-row: 1 / span 2; }
-    .articles-column, .projects-column { grid-column: 2; }
+    .articles-column, .discovery-column { grid-column: 2; }
     .home-projects { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   @media (min-width: 1200px) {
     .home-layout { grid-template-columns: minmax(14.5rem, 1fr) minmax(0, 2.3fr) minmax(16rem, 1.12fr); }
     .profile-panel { grid-row: auto; }
-    .projects-column { grid-column: 3; }
-    .home-projects { grid-template-columns: minmax(0, 1fr); }
+    .discovery-column { grid-column: 3; }
   }
   @media (prefers-reduced-motion: reduce) {
     .home-article { transition: none; }
