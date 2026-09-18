@@ -14,11 +14,13 @@ import '@/assets/styles/app.css'
 interface Props {
   meta: SiteMeta
   highlightColor?: string
+  wide?: boolean
 }
 
 const {
   meta: { articleDate, description = config.description, ogImage, title },
   highlightColor,
+  wide = false,
   ...props
 } = Astro.props
 ---
@@ -41,7 +43,7 @@ const {
     }
     <div
       id='main-container'
-      class='w-full max-w-[70rem] min-h-[100dvh] flex flex-col justify-between'
+      class:list={['w-full max-w-[70rem] min-h-[100dvh] flex flex-col justify-between', { 'wide-layout': wide }]}
     >
       <Header />
       <div class='flex-1 w-full'>
@@ -82,10 +84,17 @@ const {
           padding-right: calc(1.75rem + env(safe-area-inset-right));
         }
       }
+      #main-container.wide-layout {
+        max-width: 90rem;
+      }
       @media (min-width: 1024px) {
         #main-container {
           padding-left: calc(2.5rem + env(safe-area-inset-left));
           padding-right: calc(2.5rem + env(safe-area-inset-right));
+        }
+        #main-container.wide-layout {
+          padding-left: calc(2rem + env(safe-area-inset-left));
+          padding-right: calc(2rem + env(safe-area-inset-right));
         }
       }
     </style>

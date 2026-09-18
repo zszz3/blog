@@ -1,34 +1,123 @@
 ---
-import { getArticles } from '@/utils/articles'
+import { articleUrl, getArticles } from '@/utils/articles'
 import { Image } from 'astro:assets'
-import { PostPreview } from 'astro-pure/components/pages'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import ProjectCard from '@/components/home/ProjectCard.astro'
 import Section from '@/components/home/Section.astro'
 import avatar from '@/assets/avatar.jpg'
 import config from '@/site-config'
+
 const posts = (await getArticles('blog')).slice(0, 6)
+const dateFormat = new Intl.DateTimeFormat('zh-CN', {
+  year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
+})
+const interests = ['Backend', 'Agent Harness', 'ASI', '3D Gaussian Splatting']
 ---
-<PageLayout meta={{ title: '首页' }} highlightColor='#dbe9ff'>
-  <main class='-mt-6 flex w-full flex-col items-center'>
-    <section class='animate mb-10 flex flex-col items-center gap-y-5' id='content-header'>
-      <Image src={avatar} alt='我借此火的头像' class='h-28 w-28 object-cover rounded-full border p-1' loading='eager' fetchpriority='high' />
-      <h1 class='text-3xl font-medium'>{config.author}</h1>
-    </section>
-    <div id='content' class='animate flex flex-col gap-y-10 md:w-4/5 lg:w-5/6'>
-      <Section title='关于我' href='/about'>
-        <p>🏫 <strong>Southeast University</strong></p>
-        <p class='text-muted-foreground profile-focus'>🎯 <strong>Focus:</strong> Backend · Agent Harness · ASI · 3D Gaussian Splatting</p>
+<PageLayout meta={{ title: '首页' }} highlightColor='#dbe9ff' wide>
+  <main class='home-layout'>
+    <aside class='profile-panel home-panel animate' aria-label='个人介绍'>
+      <div id='content-header' class='profile-header'>
+        <Image src={avatar} alt='我借此火的头像' class='profile-avatar' loading='eager' fetchpriority='high' />
+        <h1>{config.author}</h1>
+      </div>
+      <Section title='关于我' href='/about' stacked>
+        <p class='profile-school'>🏫 <strong>Southeast University</strong></p>
+        <div class='profile-focus'>
+          <p class='focus-label'>🎯 Focus</p>
+          <ul class='focus-list' aria-label='关注方向'>
+            {interests.map(interest => <li>{interest}</li>)}
+          </ul>
+        </div>
       </Section>
-      <Section title='最近的文章' href='/blog'>
-        <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>{posts.map(post => <PostPreview post={post} />)}</ul>
+    </aside>
+
+    <div id='content' class='articles-column animate'>
+      <Section title='最近的文章' href='/blog' stacked>
+        <ul class='home-articles'>
+          {posts.map(post => (
+            <li>
+              <article class='home-article'>
+                <a href={articleUrl(post)} class='article-link'>
+                  <time datetime={post.data.publishDate.toISOString()}>{dateFormat.format(post.data.publishDate)}</time>
+                  <h3>{post.data.title}</h3>
+                  {post.data.description && <p>{post.data.description}</p>}
+                </a>
+              </article>
+            </li>
+          ))}
+        </ul>
       </Section>
-      <Section title='项目与归档' href='/projects'>
-        <div class='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+    </div>
+
+    <aside class='projects-column home-panel animate' aria-label='项目与归档'>
+      <Section title='项目与归档' href='/projects' stacked>
+        <div class='home-projects'>
           <ProjectCard href='/projects' heading='AgentRecall' subheading='Author · Agent 资产层' imagePath='/src/assets/projects/1.avif' />
           <ProjectCard href='/archives' heading='文章归档' subheading='按时间查阅文章' imagePath='/src/assets/projects/4.avif' />
         </div>
       </Section>
-    </div>
+    </aside>
   </main>
 </PageLayout>
+
+<style>
+  .home-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 1.5rem;
+    margin-top: -1.5rem;
+    padding-bottom: 2rem;
+  }
+  .home-layout > * { min-width: 0; }
+  .home-panel {
+    border: 1px solid hsl(var(--border) / .8);
+    border-radius: 1.15rem;
+    background: hsl(var(--background) / .85);
+    padding: 1.4rem;
+    box-shadow: 0 5px 24px hsl(var(--primary) / .035);
+  }
+  .profile-header { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; margin-bottom: 1.75rem; }
+  .profile-avatar { width: 7rem; height: 7rem; object-fit: cover; border: 1px solid; border-radius: 50%; padding: .25rem; }
+  .profile-header h1 { font-size: 1.5rem; font-weight: 600; line-height: 1.4; }
+  .profile-school { font-size: 1rem; line-height: 1.7; }
+  .profile-school strong { font-weight: 500; }
+  .profile-focus { margin-top: .65rem; }
+  .focus-label { color: hsl(var(--muted-foreground)); font-size: .875rem; margin-bottom: .7rem; }
+  .focus-list { display: flex; flex-wrap: wrap; gap: .5rem; padding: 0; margin: 0; list-style: none; }
+  .focus-list li { padding: .3rem .6rem; border-radius: .45rem; background: hsl(var(--blue-surface)); color: hsl(var(--primary)); font-size: .875rem; overflow-wrap: anywhere; }
+  .focus-list li:last-child { background: hsl(var(--orange-surface)); color: hsl(var(--accent-ink)); }
+  .articles-column { min-width: 0; }
+  .articles-column :global(section > div:first-child) { padding: 1.1rem 1.4rem; border: 1px solid hsl(var(--border) / .8); border-radius: 1rem; background: hsl(var(--background) / .85); }
+  .home-articles { display: grid; gap: 1rem; list-style: none; margin: 0; padding: 0; }
+  .home-article { border: 1px solid hsl(var(--border) / .85); border-radius: 1.15rem; overflow: hidden; background: hsl(var(--background) / .92); transition: border-color .2s, box-shadow .2s; }
+  .home-article:hover, .home-article:focus-within { border-color: hsl(var(--primary) / .45); box-shadow: 0 8px 28px hsl(var(--primary) / .07); }
+  .article-link { display: flex; min-height: 11rem; padding: 1.5rem; flex-direction: column; align-items: flex-start; gap: .6rem; text-decoration: none; }
+  .article-link time { color: hsl(var(--muted-foreground)); font-size: .875rem; }
+  .article-link h3 { color: hsl(var(--primary)); font-size: 1.5rem; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
+  .article-link p { color: hsl(var(--muted-foreground)); font-size: 1rem; line-height: 1.8; overflow-wrap: anywhere; }
+  .article-link:hover h3, .article-link:focus-visible h3 { text-decoration: underline; text-underline-offset: .2em; }
+  .home-projects { display: grid; gap: 1rem; }
+  .home-projects :global(.project-card-fg) { padding: 5.5rem 1rem 1rem; }
+  .home-projects :global(.project-card-fg p) { font-size: .875rem; }
+  @media (min-width: 640px) and (max-width: 899px) {
+    .profile-panel { display: grid; grid-template-columns: 12rem minmax(0, 1fr); gap: 2rem; align-items: center; }
+    .profile-header { margin-bottom: 0; }
+    .home-projects { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (min-width: 900px) {
+    .home-layout { grid-template-columns: 15rem minmax(0, 1fr); }
+    .profile-panel { grid-column: 1; grid-row: 1 / span 2; }
+    .articles-column, .projects-column { grid-column: 2; }
+    .home-projects { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (min-width: 1200px) {
+    .home-layout { grid-template-columns: minmax(14.5rem, 1fr) minmax(0, 2.3fr) minmax(16rem, 1.12fr); }
+    .profile-panel { grid-row: auto; }
+    .projects-column { grid-column: 3; }
+    .home-projects { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .home-article { transition: none; }
+  }
+</style>

@@ -14,7 +14,7 @@ order: 1
 # 1. 数据类型
 ## 1.1 引用类型vs基础类型
 Java中的数据类型可以分为两类：基本类型和引用类型。基本类型包括：整型（byte，short，int，long）、浮点型（float，double）、字符型（char）、布尔型（boolean）。**引用类型是指除了基本的变量类型之外的所有类型（如通过 class 定义的类型）。** 基本类型只有一块存储空间（分配在stack中），而引用类型有两块存储空间（一块在stack中，一块中heap中）
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250512203346.png)
+![image.png](./images/20250512203346.webp)
 
 ## 1.2 Integer相比int有什么优点
 - 基本类型和引用类型：int是一种基本数据类型，而Integer是一种引用类型。基本数据类型是预定义的，不需要实例化就可以使用。而引用类型则需要通过实例化对象来使用，必须为对象分配内存。在性能方面，基本数据类型的操作通常比相应的引用类型快。 
@@ -63,7 +63,7 @@ String 中的 equals 方法是被重写过的，因为 Object 的 equals 方法�
 
 ## 2.2 hashCode()
 `hashCode`主要用于获取哈希码(int 整数)，也称为散列码。这个哈希码的作用是确定该对象在哈希表中的索引位置。
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250414204513.png)
+![image.png](./images/20250414204513.webp)
 
 > 当你把对象加入 `HashSet` 时，`HashSet` 会先计算对象的 `hashCode` 值来判断对象加入的位置，同时也会与其他已经加入的对象的 `hashCode` 值作比较，如果没有相符的 `hashCode`，`HashSet` 会假设对象没有重复出现。但是如果发现有相同 `hashCode` 值的对象，这时会调用 `equals()` 方法来检查 `hashCode` 相等的对象是否真的相同。如果两者相同，`HashSet` 就不会让其加入操作成功。如果不同的话，就会重新散列到其他位置。这样我们就大大减少了 `equals` 的次数，相应就大大提高了执行速度。
 
@@ -174,7 +174,7 @@ for (int i = 0; i < arr.length; i++) {
 }
 System.out.println(s);
 ```
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250714224103.png)
+![image.png](./images/20250714224103.webp)
 
 如果直接使用 `StringBuilder` 对象进行字符串拼接的话，就不会存在这个问题了。
 ``` java
@@ -510,7 +510,7 @@ JVM在加载类时会解析`.class`文件中的注解信息，并将其存储在
 
 
 # 7. 异常
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250508104532.png)
+![image.png](./images/20250508104532.webp)
 
 
 finally块中的return语句会覆盖try块中的return返回，因此该语句会返回’b'
@@ -536,13 +536,13 @@ Lambda表达式用于创建匿名函数，主要用于简化函数式接口（�
 Java NIO，是一种同步非阻塞的I/O模型，也是I/O多路复用的基础
 
 传统的BIO里`socket.read()`，如果TCP RecvBuffer里没有数据，函数会一直阻塞，直到收到数据，返回读到的数据，如果使用BIO想要并发处理多个客户端的I/O，那么会使用多线程模式，一个线程专门处理一个客户端io，这种模式随着客户端越来越多，所需要创建的线程也越来越多，会急剧消耗系统的性能。
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250512224201.png)
+![image.png](./images/20250512224201.webp)
 
 NIO 是基于I/O多路复用实现的，它可以只用一
 
 个线程处理多个客户端I/O，如果你需要同时管理成千上万的连接，但是每个连接只发送少量数据，例如一个聊天服务器，用NIO实现会更好一些。
 
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250512224205.png)
+![image.png](./images/20250512224205.webp)
 
 
 ## 9.2 NIO是怎么实现的
@@ -556,7 +556,7 @@ NIO主要有三大核心部分：Channel(通道)，Buffer(缓冲区), Selector�
   
 Selector(选择区)用于监听多个通道的事件（比如：连接打开，数据到达）。因此，单个线程可以监听多个数据通道。
 
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250512224330.png)
+![image.png](./images/20250512224330.webp)
 
 
 # Java值传递
@@ -661,3 +661,13 @@ xiaoLi:小李
 Java 中将实参传递给方法（或函数）的方式是 **值传递**：
 - 如果参数是基本类型的话，很简单，传递的就是基本类型的字面量值的拷贝，会创建副本。
 - 如果参数是引用类型，传递的就是实参所引用的对象在堆中地址值的拷贝，同样也会创建副本。
+
+<!-- Cached copies of the original article images.
+20250414204513.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250414204513.png
+20250508104532.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250508104532.png
+20250512203346.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250512203346.png
+20250512224201.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250512224201.png
+20250512224205.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250512224205.png
+20250512224330.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250512224330.png
+20250714224103.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250714224103.png
+-->

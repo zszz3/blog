@@ -365,14 +365,14 @@ mysql> begin;
 mysql> select * from user where id = 1 for update;
 ```
 那么，事务 A 会为 id 为 1 的这条记录就会加上 **X 型的记录锁**。
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250912221647.png)
+![image.png](./images/20250912221647.webp)
 
 接下来，如果有其他事务，对 id 为 1 的记录进行更新或者删除操作的话，这些操作都会被阻塞，因为更新或者删除操作也会对记录加 X 型的记录锁，而 X 锁和 X 锁之间是互斥关系。
 比如，下面这个例子：
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250912221706.png)
+![image.png](./images/20250912221706.webp)
 
 我们可以通过`select * from performance_schema.data_locks;`这条语句，查看事务执行 SQL 过程中加了什么锁。
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250912222207.png)
+![image.png](./images/20250912222207.webp)
 从上图可以看到，共加了两个锁，分别是：
 - 表锁：X 类型的意向锁；
 - 行锁：X 类型的记录锁；
@@ -404,13 +404,13 @@ mysql> begin;
 mysql> select * from user where id = 2 for update;
 ```
 接下来，通过 `select * from performance_schema.data_locks;`这条语句，查看事务执行 SQL 过程中加了什么锁。
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913113030.png)
+![image.png](./images/20250913113030.webp)
 从上图可以看到，共加了两个锁，分别是：
 - 表锁：X 类型的意向锁；
 - 行锁：X 类型的间隙锁；
 
 因此，**此时事务 A 在 id = 5 记录的主键索引上加的是间隙锁，锁住的范围是 (1, 5)。**
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913113058.png)
+![image.png](./images/20250913113058.webp)
 接下来，如果有其他事务插入 id 值为 2、3、4 这一些记录的话，这些插入语句都会发生阻塞。
 注意，如果其他事务插入的 id = 1 或者 id = 5 的记录话，并不会发阻塞，而是报主键冲突的错误，因为表中已经存在 id = 1 和 id = 5 的记录了。
 
@@ -450,7 +450,7 @@ mysql> select * from user where id > 15 for update;
 - 最开始要找的第一行是 id = 20，由于查询该记录不是一个等值查询（不是大于等于条件查询），所以对该主键索引加的是范围为 (15, 20] 的 next-key 锁；
 - 由于是范围查找，就会继续往后找存在的记录，虽然我们看见表中最后一条记录是 id = 20 的记录，但是实际在 Innodb 存储引擎中，会用一个特殊的记录来标识最后一条记录，该特殊的记录的名字叫 supremum pseudo-record ，所以扫描第二行的时候，也就扫描到了这个特殊记录的时候，会对该主键索引加的是范围为 (20, +∞] 的 next-key 锁。
 - 停止扫描
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913120737.png)
+![image.png](./images/20250913120737.webp)
 
 
 **实验二：针对大于等于的范围查询**
@@ -466,7 +466,7 @@ mysql> select * from user where id >= 15 for update;
 - 接着扫描到第三行的时候，扫描到了特殊记录（ supremum pseudo-record），于是对该主键索引加的是范围为 (20, +∞] 的 next-key 锁。
 - 停止扫描
 
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913122230.png)
+![image.png](./images/20250913122230.webp)
 
 
 
@@ -487,7 +487,7 @@ mysql> select * from user where id < 6 for update;
 - 由于扫描到的第二行记录（id = 5），满足 id < 6 条件，而且也没有达到终止扫描的条件，接着会继续扫描。
 - 扫描到的第三行是 id = 10，该记录不满足 id < 6 条件的记录，所以 id = 10 这一行记录的锁会**退化成间隙锁**，于是对该主键索引加的是范围为 (5, 10) 的间隙锁。
 - 由于扫描到的第三行记录（id = 10），不满足 id < 6 条件，达到了终止扫描的条件，于是停止扫描。
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913123139.png)
+![image.png](./images/20250913123139.webp)
 
 - ? **为什么id(5,10)也要加间隙锁么？**
 第三个间隙锁是加在id=10 索引上的，这个例子不太好说明，如果是id<7，id=10索引不加间隙锁的话，中途插入一个 6，就发生幻读了
@@ -508,7 +508,7 @@ mysql> select * from user where id <= 5  for update;
 - 由于主键索引具有唯一性，不会存在两个 id = 5 的记录，所以不会再继续扫描，于是停止扫描。
 
 从上面的分析中，可以得到**事务 A 在主键索引上加了 2 个 X 型的锁**：
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913124735.png)
+![image.png](./images/20250913124735.webp)
 
 **如果查的是id < 5,则next-key lock会退化为间隙锁！！**
 
@@ -543,7 +543,7 @@ mysql> select * from user where age = 25 for update;
 
 事务 A 在 age = 39 记录的二级索引上，加了 X 型的间隙锁，范围是 (22, 39)。意味着其他事务无法插入 age 值为 23、24、25、26、....、38 这些新记录。不过对于插入 age = 22 和 age = 39 记录的语句，在一些情况是可以成功插入的，而一些情况则无法成功插入，具体哪些情况，会在后面说。
 
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913220756.png)
+![image.png](./images/20250913220756.webp)
 
 
 **当有一个事务持有二级索引的间隙锁 (22, 39) 时，什么情况下，可以让其他事务的插入 age = 22 或者 age = 39 记录的语句成功？又是什么情况下，插入 age = 22 或者 age = 39 记录时的语句会被阻塞？**
@@ -570,7 +570,7 @@ mysql> select * from user where age = 25 for update;
 
 
 知道了这个结论之后，我们再回过头看，非唯一索引等值查询时，查询的记录不存在时，执行`select * from performance_schema.data_locks;`输出的结果。
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913222257.png)
+![image.png](./images/20250913222257.webp)
 
 在前面分析输出结果的时候，说的结论是：「事务 A 在 age = 39 记录的二级索引上（INDEX_NAME: index_age ），加了范围为 (22, 39) 的 X 型间隙锁」。这个结论其实还不够准确，**因为只考虑了 LOCK_DATA 第一个数值（39），没有考虑 LOCK_DATA 第二个数值（20）。**
 
@@ -599,10 +599,10 @@ mysql> select * from user where age = 22 for update;
 - 停止查询。
 
 可以看到，事务 A 对主键索引和二级索引都加了 X 型的锁：
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913223238.png)
+![image.png](./images/20250913223238.webp)
 
 我们也可以通过 select * from performance_schema.data_locks\G; 这条语句来看看事务 A 加了什么锁。 输出结果如下，我这里只截取了行级锁的内容。
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913223730.png)
+![image.png](./images/20250913223730.webp)
 
 从上图的分析，可以看到，事务 A 对二级索引（INDEX_NAME: index_age ）加了两个 X 型锁，分别是：
 - 在 age = 22 这条记录的二级索引上，加了范围为 (21, 22] 的 next-key 锁，意味着其他事务无法更新或者删除 age = 22 的这一些新记录，针对是否可以插入 age = 21 和 age = 22 的新记录，分析如下：
@@ -653,7 +653,7 @@ mysql> select * from user where age >= 22 for update;
 - 虽然我们看见表中最后一条二级索引记录是 age = 39 的记录，但是实际在 Innodb 存储引擎中，会用一个特殊的记录来标识最后一条记录，该特殊的记录的名字叫`supremum pseudo-record`，所以扫描第二行的时候，也就扫描到了这个特殊记录的时候，会对该二级索引记录加的是范围为 (39, +∞] 的 next-key 锁。
 - 停止查询
 
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913225110.png)
+![image.png](./images/20250913225110.webp)
 
 
 - ? **在 age >= 22 的范围查询中，明明查询 age = 22 的记录存在并且属于等值查询，为什么不会像唯一索引那样，将 age = 22 记录的二级索引上的 next-key 锁退化为记录锁？**
@@ -940,15 +940,15 @@ CREATE TABLE `t_student` (
 ```
 
 然后，插入相关的数据后，t_student 表中的记录如下：
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250914150544.png)
+![image.png](./images/20250914150544.webp)
 
 接着进行了以下的查询
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250914150738.png)
+![image.png](./images/20250914150738.webp)
 
 可以看到，事务 A 和 事务 B 都在执行 insert 语句后，都陷入了等待状态（前提没有打开死锁检测），也就是发生了死锁，因为都在相互等待对方释放锁。
 
 ## Time1阶段加锁分析
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250914153315.png)
+![image.png](./images/20250914153315.webp)
 
 从上图可以看到，共加了两个锁，分别是：
 - 表锁：X 类型的意向锁；
@@ -958,7 +958,7 @@ CREATE TABLE `t_student` (
 
 
 ## Time2 阶段加锁分析
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250914153943.png)
+![image.png](./images/20250914153943.webp)
 从上图可以看到，行锁是 X 类型的间隙锁，间隙锁的范围是`(20, 30)`。
 
 **两个事务的间隙锁之间是相互兼容的，不会产生冲突。**
@@ -975,7 +975,7 @@ mysql> insert into t_student(id, no, name, age,score) value (25, 'S0025', 'sony'
 ```
 此时，事务 A 就陷入了等待状态。
 
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250914154151.png)
+![image.png](./images/20250914154151.webp)
 
 可以看到，事务 A 的状态为等待状态`（LOCK_STATUS: WAITING）`，因为向事务 B 生成的间隙锁（范围 (20, 30)）中插入了一条记录，所以事务 A 的插入操作生成了一个插入意向锁`（LOCK_MODE:INSERT_INTENTION）`。
 
@@ -997,10 +997,34 @@ mysql> insert into t_student(id, no, name, age,score) value (26, 'S0026', 'ace',
 /// 阻塞等待......
 ```
 
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250914154818.png)
+![image.png](./images/20250914154818.webp)
 可以看到，事务 B 在生成插入意向锁时而导致被阻塞，这是因为事务 B 向事务 A 生成的范围为 (20, 30) 的间隙锁插入了一条记录，而插入意向锁和间隙锁是冲突的，所以事务 B 在获取插入意向锁时就陷入了等待状态。
 
 本次案例中，事务 A 和事务 B 在执行完后 update 语句后都持有范围为(20, 30）的间隙锁，而接下来的插入操作为了获取到插入意向锁，都在等待对方事务的间隙锁释放，于是就造成了循环等待，满足了死锁的四个条件：**互斥、占有且等待、不可强占用、循环等待**，因此发生了死锁。
 
 
-![image.png](https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250914154914.png)
+![image.png](./images/20250914154914.webp)
+
+<!-- Cached copies of the original article images.
+20250912221647.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250912221647.png
+20250912221706.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250912221706.png
+20250912222207.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250912222207.png
+20250913113030.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913113030.png
+20250913113058.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913113058.png
+20250913120737.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913120737.png
+20250913122230.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913122230.png
+20250913123139.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913123139.png
+20250913124735.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913124735.png
+20250913220756.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913220756.png
+20250913222257.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913222257.png
+20250913223238.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913223238.png
+20250913223730.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913223730.png
+20250913225110.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250913225110.png
+20250914150544.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250914150544.png
+20250914150738.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250914150738.png
+20250914153315.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250914153315.png
+20250914153943.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250914153943.png
+20250914154151.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250914154151.png
+20250914154818.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250914154818.png
+20250914154914.webp: https://wojiecihuo-1306847107.cos.ap-nanjing.myqcloud.com/obsidian/20250914154914.png
+-->
