@@ -94,13 +94,13 @@ const dateFormat = new Intl.DateTimeFormat('zh-CN', {
   }
   .articles-column { display: flex; flex-direction: column; gap: 1.75rem; min-width: 0; }
   .articles-column :global(section > div:first-child) { padding: 1.1rem 1.4rem; border: 1px solid hsl(var(--border) / .8); border-radius: 1rem; background: hsl(var(--background) / .85); }
-  .home-articles { display: grid; gap: 1rem; list-style: none; margin: 0; padding: 0; }
-  .home-article { border: 1px solid hsl(var(--border) / .85); border-radius: 1.15rem; overflow: hidden; background: hsl(var(--background) / .92); transition: border-color .2s, box-shadow .2s; }
+  .home-articles { display: grid; gap: .65rem; list-style: none; margin: 0; padding: 0; }
+  .home-article { border: 1px solid hsl(var(--border) / .85); border-radius: .85rem; overflow: hidden; background: hsl(var(--background) / .92); transition: border-color .2s, box-shadow .2s; }
   .home-article:hover, .home-article:focus-within { border-color: hsl(var(--primary) / .45); box-shadow: 0 8px 28px hsl(var(--primary) / .07); }
-  .article-link { display: flex; min-height: 11rem; padding: 1.5rem; flex-direction: column; align-items: flex-start; gap: .6rem; text-decoration: none; }
-  .article-link time { color: hsl(var(--muted-foreground)); font-size: .875rem; }
-  .article-link h3 { color: hsl(var(--primary)); font-size: 1.5rem; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
-  .article-link p { color: hsl(var(--muted-foreground)); font-size: 1rem; line-height: 1.8; overflow-wrap: anywhere; }
+  .article-link { display: flex; padding: .9rem 1.1rem; flex-direction: column; align-items: flex-start; gap: .3rem; text-decoration: none; }
+  .article-link time { color: hsl(var(--muted-foreground)); font-size: .8125rem; }
+  .article-link h3 { color: hsl(var(--primary)); font-size: 1.25rem; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
+  .article-link p { color: hsl(var(--muted-foreground)); font-size: 1rem; line-height: 1.6; overflow-wrap: anywhere; }
   .article-link:hover h3, .article-link:focus-visible h3 { text-decoration: underline; text-underline-offset: .2em; }
   .home-projects { display: grid; gap: 1rem; }
   .home-projects :global(.project-card-fg) { padding: 5.5rem 1rem 1rem; }
