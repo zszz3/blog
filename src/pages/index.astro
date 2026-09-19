@@ -22,21 +22,21 @@ const dateFormat = new Intl.DateTimeFormat('zh-CN', {
     </aside>
 
     <div id='content' class='articles-column animate'>
-      <Section title='最近的文章' href='/blog' stacked>
+      <section aria-label='文章列表'>
         <ul class='home-articles'>
           {posts.map(post => (
             <li>
               <article class='home-article'>
                 <a href={articleUrl(post)} class='article-link'>
                   <time datetime={post.data.publishDate.toISOString()}>{dateFormat.format(post.data.publishDate)}</time>
-                  <h3>{post.data.title}</h3>
+                  <h2>{post.data.title}</h2>
                   {post.data.description && <p>{post.data.description}</p>}
                 </a>
               </article>
             </li>
           ))}
         </ul>
-      </Section>
+      </section>
       <Section title='项目与归档' href='/projects' stacked>
         <div class='home-projects'>
           <ProjectCard href='/projects' heading='AgentRecall' subheading='Author · Agent 资产层' imagePath='/src/assets/projects/1.avif' />
@@ -99,9 +99,9 @@ const dateFormat = new Intl.DateTimeFormat('zh-CN', {
   .home-article:hover, .home-article:focus-within { border-color: hsl(var(--primary) / .45); box-shadow: 0 8px 28px hsl(var(--primary) / .07); }
   .article-link { display: flex; padding: .9rem 1.1rem; flex-direction: column; align-items: flex-start; gap: .3rem; text-decoration: none; }
   .article-link time { color: hsl(var(--muted-foreground)); font-size: .8125rem; }
-  .article-link h3 { color: hsl(var(--primary)); font-size: 1.25rem; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
+  .article-link h2 { color: hsl(var(--primary)); font-size: 1.25rem; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
   .article-link p { color: hsl(var(--muted-foreground)); font-size: 1rem; line-height: 1.6; overflow-wrap: anywhere; }
-  .article-link:hover h3, .article-link:focus-visible h3 { text-decoration: underline; text-underline-offset: .2em; }
+  .article-link:hover h2, .article-link:focus-visible h2 { text-decoration: underline; text-underline-offset: .2em; }
   .home-projects { display: grid; gap: 1rem; }
   .home-projects :global(.project-card-fg) { padding: 5.5rem 1rem 1rem; }
   .home-projects :global(.project-card-fg p) { font-size: .875rem; }

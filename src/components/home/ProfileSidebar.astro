@@ -22,7 +22,7 @@ const sortedCategories = [...categories].sort((a, b) => b[1] - a[1] || a[0].loca
       <Image src={avatar} alt='我借此火的头像' class='profile-avatar' loading='eager' fetchpriority='high' />
     </a>
     <h1>{config.author}</h1>
-    <p class='signature'>Southeast University</p>
+    <p class='signature'>要注意身体健康</p>
     <nav class='social-links' aria-label='我的社交链接'>
       {(config.footer.social || []).map(({ label, href, icon }) => (
         <a href={href} aria-label={label} title={label} rel='me'>
