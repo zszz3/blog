@@ -33,9 +33,11 @@ const sortedCategories = [...categories].sort((a, b) => b[1] - a[1] || a[0].loca
   </section>
 
   <section class='sidebar-card announcement' aria-labelledby='announcement-title'>
-    <h2 id='announcement-title'>公告</h2>
+    <div class='announcement-header'>
+      <h2 id='announcement-title'>公告</h2>
+      <a class='about-link' href='/about'>关于我</a>
+    </div>
     <p>欢迎来到我的博客！这里记录学习笔记与项目实践。</p>
-    <a class='about-link' href='/about'>关于我</a>
   </section>
 
   <section class='sidebar-card' aria-labelledby='sidebar-tags-title'>
@@ -76,8 +78,10 @@ const sortedCategories = [...categories].sort((a, b) => b[1] - a[1] || a[0].loca
   .social-links :global(.social-icon) { width: 1.4rem; height: 1.4rem; }
   h2 { display: flex; align-items: center; gap: .75rem; margin: 0 0 .65rem; font-size: 1.125rem; font-weight: 700; line-height: 1.5; }
   h2::before { content: ''; flex: 0 0 .25rem; height: 1rem; border-radius: 1rem; background: #60af90; }
-  .announcement p { margin: 0 0 .6rem; font-size: 1rem; line-height: 1.75; }
-  .about-link { display: inline-block; border-radius: .4rem; padding: .35rem .75rem; font-size: .875rem; font-weight: 600; color: var(--sidebar-accent); background: var(--sidebar-soft); }
+  .announcement-header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: .65rem; }
+  .announcement-header h2 { margin: 0; }
+  .announcement p { margin: 0; font-size: 1rem; line-height: 1.75; }
+  .about-link { display: inline-block; flex-shrink: 0; white-space: nowrap; border-radius: .4rem; padding: .35rem .75rem; font-size: .875rem; font-weight: 600; color: var(--sidebar-accent); background: var(--sidebar-soft); }
   .tag-list, .category-list { padding: 0; margin: 0; list-style: none; }
   .tag-list { display: flex; flex-wrap: wrap; gap: .5rem; }
   .tag-list a { display: block; padding: .4rem .75rem; border-radius: 2rem; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: .875rem; line-height: 1.4; }
