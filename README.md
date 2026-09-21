@@ -61,6 +61,6 @@ pnpm preview
 - 发文操作说明：`docs/authoring/`
 - 模板参考资料（不发布）：`docs/theme-reference/`
 
-GitHub 自动构建与服务器启用步骤见 [上线指南](docs/上线指南.md)。服务器部署尚需完成首次配置；构建成功不等于正式域名已经发布。
+GitHub 到阿里云的自动发布已启用。将文章和图片提交或合并到 `main` 后，Actions 会自动构建并发布到 `https://wojiecihuo.cn`；`build` 和 `deploy` 都成功才表示网站已更新。维护与回退步骤见 [上线指南](docs/上线指南.md)。
 
 原文章的旧 `/posts/` 链接保留跳转。原主题许可证保存在根目录，新主题许可证见 `licenses/astro-theme-pure-LICENSE`。
