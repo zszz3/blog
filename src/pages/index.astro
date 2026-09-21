@@ -1,5 +1,8 @@
 ---
+import type { ImageMetadata } from 'astro'
+import { Image } from 'astro:assets'
 import { articleUrl, getArticles } from '@/utils/articles'
+import { getArticleCover } from '@/utils/article-cover'
 import { getUniqueTagsWithCount } from 'astro-pure/server'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import ProfileSidebar from '@/components/home/ProfileSidebar.astro'
@@ -7,6 +10,8 @@ import WritingHeatmap from '@/components/home/WritingHeatmap.astro'
 
 const allPosts = await getArticles('blog')
 const posts = allPosts.slice(0, 6)
+const images = import.meta.glob<{ default: ImageMetadata }>('/src/**/*.{jpeg,jpg,png,gif,avif,webp,svg}')
+const previews = await Promise.all(posts.map(async post => ({ post, cover: await getArticleCover(post, images) })))
 const tags = getUniqueTagsWithCount(allPosts)
 const latestPost = allPosts[0]
 const dateFormat = new Intl.DateTimeFormat('zh-CN', {
@@ -22,13 +27,26 @@ const dateFormat = new Intl.DateTimeFormat('zh-CN', {
     <div id='content' class='articles-column animate'>
       <section aria-label='文章列表'>
         <ul class='home-articles'>
-          {posts.map(post => (
+          {previews.map(({ post, cover }, index) => (
             <li>
-              <article class='home-article'>
+              <article class:list={['home-article', { 'with-cover': cover }]}>
                 <a href={articleUrl(post)} class='article-link'>
-                  <time datetime={post.data.publishDate.toISOString()}>{dateFormat.format(post.data.publishDate)}</time>
-                  <h2>{post.data.title}</h2>
-                  {post.data.description && <p>{post.data.description}</p>}
+                  {cover && <Image
+                    {...cover}
+                    alt=''
+                    width={640}
+                    height={400}
+                    widths={[320, 640]}
+                    sizes='(max-width: 559px) 100vw, 360px'
+                    class='article-cover'
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    decoding='async'
+                  />}
+                  <div class='article-summary'>
+                    <time datetime={post.data.publishDate.toISOString()}>{dateFormat.format(post.data.publishDate)}</time>
+                    <h2>{post.data.title}</h2>
+                    {post.data.description && <p>{post.data.description}</p>}
+                  </div>
                 </a>
               </article>
             </li>
@@ -85,10 +103,14 @@ const dateFormat = new Intl.DateTimeFormat('zh-CN', {
     box-shadow: 0 5px 24px hsl(var(--primary) / .035);
   }
   .articles-column { display: flex; flex-direction: column; gap: 1.75rem; min-width: 0; }
-  .home-articles { display: grid; gap: .65rem; list-style: none; margin: 0; padding: 0; }
+  .home-articles { display: grid; gap: 1rem; list-style: none; margin: 0; padding: 0; }
   .home-article { border: 1px solid hsl(var(--border) / .85); border-radius: .85rem; overflow: hidden; background: hsl(var(--background) / .92); transition: border-color .2s, box-shadow .2s; }
   .home-article:hover, .home-article:focus-within { border-color: hsl(var(--primary) / .45); box-shadow: 0 8px 28px hsl(var(--primary) / .07); }
-  .article-link { display: flex; padding: .9rem 1.1rem; flex-direction: column; align-items: flex-start; gap: .3rem; text-decoration: none; }
+  .article-link { position: relative; display: flex; padding: .9rem 1.1rem; flex-direction: column; justify-content: center; text-decoration: none; overflow: hidden; }
+  .with-cover .article-link { min-height: 10.5rem; }
+  .article-summary { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; gap: .3rem; }
+  .article-cover { position: absolute; inset: 0 0 0 auto; width: 62%; height: 100%; object-fit: cover; opacity: .55; mask-image: linear-gradient(to right, transparent, #000); transition: opacity .2s; }
+  .home-article:hover .article-cover, .home-article:focus-within .article-cover { opacity: .7; }
   .article-link time { color: hsl(var(--muted-foreground)); font-size: .8125rem; }
   .article-link h2 { color: hsl(var(--primary)); font-size: 1.25rem; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
   .article-link p { color: hsl(var(--muted-foreground)); font-size: 1rem; line-height: 1.6; overflow-wrap: anywhere; }
@@ -107,6 +129,10 @@ const dateFormat = new Intl.DateTimeFormat('zh-CN', {
   .site-overview dd { margin: .3rem 0 0; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
   .site-overview .latest-published { grid-column: 1 / -1; border-top: 1px solid hsl(var(--border)); padding-top: 1rem; }
   .latest-published dd { font-size: .9375rem; }
+  @media (max-width: 559px) {
+    .with-cover .article-link { min-height: 13.5rem; justify-content: flex-end; padding-top: 6rem; }
+    .article-cover { width: 100%; height: 75%; mask-image: linear-gradient(to bottom, #000, transparent); }
+  }
   @media (min-width: 900px) {
     .home-layout { grid-template-columns: 15rem minmax(0, 1fr); }
     .profile-column { grid-column: 1; grid-row: 1 / span 2; }
@@ -118,6 +144,6 @@ const dateFormat = new Intl.DateTimeFormat('zh-CN', {
     .discovery-column { grid-column: 3; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .home-article { transition: none; }
+    .home-article, .article-cover { transition: none; }
   }
 </style>
