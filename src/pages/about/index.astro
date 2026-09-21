@@ -4,12 +4,11 @@ import PageLayout from '@/layouts/BaseLayout.astro'
 import avatar from '@/assets/avatar.jpg'
 ---
 
-<PageLayout meta={{ title: '关于我', description: 'Southeast University' }}>
+<PageLayout meta={{ title: '关于我', description: '关于我借此火' }}>
   <main class='about-page animate'>
     <header class='about-intro'>
       <div>
         <h1>关于我</h1>
-        <p class='about-school'>Southeast University</p>
       </div>
       <Image src={avatar} alt='个人头像' class='about-avatar' width={88} height={88} loading='eager' />
     </header>
@@ -21,11 +20,9 @@ import avatar from '@/assets/avatar.jpg'
   .about-page { width: 100%; max-width: 46rem; margin: 0 auto; padding: .5rem 0 2rem; }
   .about-intro { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
   .about-intro h1 { margin: 0; color: hsl(var(--primary)); font-size: 2rem; font-weight: 600; line-height: 1.4; }
-  .about-school { margin: .6rem 0 0; color: hsl(var(--muted-foreground)); font-size: .9375rem; }
   .about-avatar { flex-shrink: 0; width: 5.5rem; height: 5.5rem; object-fit: cover; border-radius: 50%; border: 1px solid hsl(var(--primary) / .2); box-shadow: 5px 5px 0 hsl(var(--orange-surface)); }
   @media (max-width: 480px) {
     .about-intro h1 { font-size: 1.75rem; }
     .about-avatar { width: 4.5rem; height: 4.5rem; }
-    .about-school { font-size: .875rem; }
   }
 </style>
