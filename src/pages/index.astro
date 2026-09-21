@@ -2,8 +2,6 @@
 import { articleUrl, getArticles } from '@/utils/articles'
 import { getUniqueTagsWithCount } from 'astro-pure/server'
 import PageLayout from '@/layouts/BaseLayout.astro'
-import ProjectCard from '@/components/home/ProjectCard.astro'
-import Section from '@/components/home/Section.astro'
 import ProfileSidebar from '@/components/home/ProfileSidebar.astro'
 import WritingHeatmap from '@/components/home/WritingHeatmap.astro'
 
@@ -37,12 +35,6 @@ const dateFormat = new Intl.DateTimeFormat('zh-CN', {
           ))}
         </ul>
       </section>
-      <Section title='项目与归档' href='/projects' stacked>
-        <div class='home-projects'>
-          <ProjectCard href='/projects' heading='AgentRecall' subheading='Author · Agent 资产层' imagePath='/src/assets/projects/1.avif' />
-          <ProjectCard href='/archives' heading='文章归档' subheading='按时间查阅文章' imagePath='/src/assets/projects/4.avif' />
-        </div>
-      </Section>
     </div>
 
     <aside class='discovery-column animate' aria-label='最近动态、文章热力图与站点概览'>
@@ -93,7 +85,6 @@ const dateFormat = new Intl.DateTimeFormat('zh-CN', {
     box-shadow: 0 5px 24px hsl(var(--primary) / .035);
   }
   .articles-column { display: flex; flex-direction: column; gap: 1.75rem; min-width: 0; }
-  .articles-column :global(section > div:first-child) { padding: 1.1rem 1.4rem; border: 1px solid hsl(var(--border) / .8); border-radius: 1rem; background: hsl(var(--background) / .85); }
   .home-articles { display: grid; gap: .65rem; list-style: none; margin: 0; padding: 0; }
   .home-article { border: 1px solid hsl(var(--border) / .85); border-radius: .85rem; overflow: hidden; background: hsl(var(--background) / .92); transition: border-color .2s, box-shadow .2s; }
   .home-article:hover, .home-article:focus-within { border-color: hsl(var(--primary) / .45); box-shadow: 0 8px 28px hsl(var(--primary) / .07); }
@@ -102,9 +93,6 @@ const dateFormat = new Intl.DateTimeFormat('zh-CN', {
   .article-link h2 { color: hsl(var(--primary)); font-size: 1.25rem; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
   .article-link p { color: hsl(var(--muted-foreground)); font-size: 1rem; line-height: 1.6; overflow-wrap: anywhere; }
   .article-link:hover h2, .article-link:focus-visible h2 { text-decoration: underline; text-underline-offset: .2em; }
-  .home-projects { display: grid; gap: 1rem; }
-  .home-projects :global(.project-card-fg) { padding: 5.5rem 1rem 1rem; }
-  .home-projects :global(.project-card-fg p) { font-size: .875rem; }
   .profile-column, .discovery-column { display: grid; gap: 1.25rem; }
   .site-overview h2, .recent-activity h2 { margin: 0 0 1.25rem; font-size: 1.125rem; font-weight: 500; }
   .activity-list { list-style: none; margin: 0; padding: 0; }
@@ -119,14 +107,10 @@ const dateFormat = new Intl.DateTimeFormat('zh-CN', {
   .site-overview dd { margin: .3rem 0 0; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
   .site-overview .latest-published { grid-column: 1 / -1; border-top: 1px solid hsl(var(--border)); padding-top: 1rem; }
   .latest-published dd { font-size: .9375rem; }
-  @media (min-width: 560px) {
-    .home-projects { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  }
   @media (min-width: 900px) {
     .home-layout { grid-template-columns: 15rem minmax(0, 1fr); }
     .profile-column { grid-column: 1; grid-row: 1 / span 2; }
     .articles-column, .discovery-column { grid-column: 2; }
-    .home-projects { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   @media (min-width: 1200px) {
     .home-layout { grid-template-columns: minmax(14.5rem, 1fr) minmax(0, 2.3fr) minmax(16rem, 1.12fr); }
