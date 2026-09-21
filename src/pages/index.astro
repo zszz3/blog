@@ -21,6 +21,7 @@ const previews = await Promise.all(posts.map(async post => {
   return { post, cover, wordCount: typeof words === 'number' && Number.isFinite(words) ? words : undefined }
 }))
 const tags = getUniqueTagsWithCount(allPosts)
+const tagHues: Record<string, number> = { mysql: 210, java: 24, 八股: 270 }
 const latestPost = allPosts[0]
 const dateFormat = new Intl.DateTimeFormat('zh-CN', {
   year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
@@ -64,7 +65,7 @@ const dateFormat = new Intl.DateTimeFormat('zh-CN', {
                 </a>
                 {post.data.tags.length > 0 && <ul class='article-tags' aria-label={`${post.data.title}的标签`}>
                   {post.data.tags.map(tag => (
-                    <li><Button title={tag} href={`/tags/${encodeURIComponent(tag)}`} variant='pill' /></li>
+                    <li><Button title={tag} href={`/tags/${encodeURIComponent(tag)}`} variant='pill' style={`--tag-hue: ${tagHues[tag.toLowerCase()] ?? 165}`} /></li>
                   ))}
                 </ul>}
               </article>
@@ -136,6 +137,11 @@ const dateFormat = new Intl.DateTimeFormat('zh-CN', {
   .article-link p { color: hsl(var(--muted-foreground)); font-size: 1rem; line-height: 1.6; overflow-wrap: anywhere; }
   .article-link:hover h2, .article-link:focus-visible h2 { text-decoration: underline; text-underline-offset: .2em; }
   .article-tags { display: flex; flex-wrap: wrap; gap: .5rem; list-style: none; margin: 0; padding: 0 1.1rem .9rem; }
+  .article-tags :global(a) { color: hsl(var(--tag-hue) 70% 32%); background: hsl(var(--tag-hue) 75% 94%); border-color: hsl(var(--tag-hue) 65% 84%); }
+  .article-tags :global(a:hover) { background: hsl(var(--tag-hue) 75% 89%); border-color: hsl(var(--tag-hue) 60% 70%); }
+  .article-tags :global(a:focus-visible) { outline: 2px solid currentColor; outline-offset: 3px; }
+  :global(.dark) .article-tags :global(a) { color: hsl(var(--tag-hue) 82% 80%); background: hsl(var(--tag-hue) 30% 20%); border-color: hsl(var(--tag-hue) 30% 33%); }
+  :global(.dark) .article-tags :global(a:hover) { background: hsl(var(--tag-hue) 35% 28%); border-color: hsl(var(--tag-hue) 45% 50%); }
   .profile-column, .discovery-column { display: grid; gap: 1.25rem; }
   .site-overview h2, .recent-activity h2 { margin: 0 0 1.25rem; font-size: 1.125rem; font-weight: 500; }
   .activity-list { list-style: none; margin: 0; padding: 0; }
