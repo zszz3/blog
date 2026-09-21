@@ -54,7 +54,7 @@ jobs:
         run: echo '网站已构建。首次配置服务器凭证并将 ECS_DEPLOY_ENABLED 设为 true 后，将自动发布到阿里云。' >> "$GITHUB_STEP_SUMMARY"
   deploy:
     needs: build
-    timeout-minutes: 10
+    timeout-minutes: 20
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.ECS_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     environment:

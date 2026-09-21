@@ -15,11 +15,11 @@ MAX_ARCHIVE_BYTES = 128 * 1024 * 1024
 
 
 def parse_command(command):
-    if command == 'status':
-        return 'status', None
+    if command in {'status', 'manifest'}:
+        return command, None
     match = re.fullmatch(r'(publish|rollback) (' + RELEASE_ID + r'|previous)', command)
     if not match or (match[1] == 'publish' and match[2] == 'previous'):
-        raise ValueError('Only publish, rollback, and status are allowed')
+        raise ValueError('Only publish, rollback, status, and manifest are allowed')
     return match[1], match[2]
 
 
@@ -39,6 +39,10 @@ def execute(command, source, root=SITE_ROOT, release_tool=RELEASE_TOOL):
     if operation == 'status':
         print((root / 'receipt.json').read_text().strip())
         return
+    if operation == 'manifest':
+        subprocess.run([sys.executable, '-I', str(release_tool), 'manifest', '--root', str(root)],
+                       check=True, timeout=120, stdin=subprocess.DEVNULL)
+        return
     args = [sys.executable, '-I', str(release_tool), operation, '--root', str(root), '--release', release]
     if operation == 'rollback':
         subprocess.run(args, check=True, timeout=120, stdin=subprocess.DEVNULL)
@@ -57,7 +61,7 @@ def main():
         raise TimeoutError('Deployment request timed out')
 
     signal.signal(signal.SIGALRM, timeout)
-    signal.alarm(300)
+    signal.alarm(900)
     try:
         execute(os.environ.get('SSH_ORIGINAL_COMMAND', ''), sys.stdin.buffer)
     except (ValueError, OSError, subprocess.SubprocessError) as error:

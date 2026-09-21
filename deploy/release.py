@@ -2,15 +2,85 @@
 """Validate and switch complete static releases. Run as the dedicated deploy user."""
 import argparse
 import fcntl
+import hashlib
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 import shutil
 import tarfile
 import tempfile
 
 RELEASE_ID = re.compile(r"^[0-9]+-[0-9]+-[a-f0-9]{40}$")
+MANIFEST_NAME = '.deploy-manifest.json'
+
+
+def digest(file):
+    value = hashlib.sha256()
+    with file.open('rb') as source:
+        for chunk in iter(lambda: source.read(1024 * 1024), b''):
+            value.update(chunk)
+    return value.hexdigest()
+
+
+def inventory(root):
+    current = root / 'current'
+    if not current.is_symlink():
+        return {'release': None, 'files': {}}
+    directory = current.resolve()
+    if directory.parent != (root / 'releases').resolve() or not RELEASE_ID.fullmatch(directory.name):
+        raise ValueError('Invalid current release')
+    files = {}
+    for file in sorted(directory.rglob('*')):
+        if file.is_symlink():
+            raise ValueError('Release files cannot be symlinks')
+        if file.is_file():
+            files[file.relative_to(directory).as_posix()] = digest(file)
+    return {'release': directory.name, 'files': files}
+
+
+def complete_increment(root, staging):
+    manifest = staging / MANIFEST_NAME
+    if not manifest.exists():
+        return  # Backward-compatible complete archive.
+    if manifest.stat().st_size > 16 * 1024 * 1024:
+        raise ValueError('Manifest is too large')
+    data = json.loads(manifest.read_text())
+    files = data.get('files')
+    base = data.get('base')
+    if data.get('version') != 1 or not isinstance(files, dict) or len(files) > 50000:
+        raise ValueError('Invalid deployment manifest')
+    if base is not None and (not isinstance(base, str) or not RELEASE_ID.fullmatch(base)):
+        raise ValueError('Invalid base release')
+    for name, expected in files.items():
+        path = PurePosixPath(name)
+        if (not path.parts or path.is_absolute() or '..' in path.parts or str(path) != name
+                or name == MANIFEST_NAME or '\\' in name or '\x00' in name
+                or not isinstance(expected, str) or not re.fullmatch(r'[a-f0-9]{64}', expected)):
+            raise ValueError('Unsafe manifest entry')
+    manifest.unlink()
+    uploaded = {file.relative_to(staging).as_posix() for file in staging.rglob('*') if file.is_file()}
+    if uploaded - files.keys():
+        raise ValueError('Archive contains files absent from manifest')
+    size = 0
+    for name, expected in files.items():
+        target = staging / name
+        if not target.exists():
+            if base is None:
+                raise ValueError('Missing uploaded file: ' + name)
+            base_directory = root / 'releases' / base
+            source = base_directory / name
+            if (base_directory.is_symlink() or not source.is_file()
+                    or not source.resolve().is_relative_to(base_directory.resolve())):
+                raise ValueError('Missing or unsafe reused file: ' + name)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
+            target.chmod(0o644)
+        if not target.is_file() or digest(target) != expected:
+            raise ValueError('File checksum mismatch: ' + name)
+        size += target.stat().st_size
+        if size > 1024 ** 3:
+            raise ValueError('Release is too large')
 
 
 def atomic_json(path, value):
@@ -84,6 +154,7 @@ def publish(root, archive, release, run):
         staging = Path(temp) / 'site'
         staging.mkdir()
         extract(archive, staging)
+        complete_increment(root, staging)
         validate(staging)
         # Keep content-addressed assets available to readers who still have an older page open.
         shared = root / 'shared'
@@ -125,10 +196,10 @@ def rollback(root, release):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('operation', choices=['publish', 'rollback'])
+    parser.add_argument('operation', choices=['publish', 'rollback', 'manifest'])
     parser.add_argument('--root', required=True)
     parser.add_argument('--archive')
-    parser.add_argument('--release', required=True)
+    parser.add_argument('--release')
     parser.add_argument('--run', type=int, default=0)
     args = parser.parse_args()
     root = Path(args.root).resolve()
@@ -137,7 +208,12 @@ def main():
     root.mkdir(parents=True, exist_ok=True)
     with (root / '.deploy.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
-        result = publish(root, args.archive, args.release, args.run) if args.operation == 'publish' else rollback(root, args.release)
+        if args.operation == 'manifest':
+            result = inventory(root)
+        elif not args.release:
+            parser.error('--release is required for publish and rollback')
+        else:
+            result = publish(root, args.archive, args.release, args.run) if args.operation == 'publish' else rollback(root, args.release)
         print(json.dumps(result, ensure_ascii=False))
 
 

@@ -25,7 +25,8 @@ elif [[ "${DEPLOY_OPERATION:-publish}" == publish ]]; then
   attempt="${GITHUB_RUN_ATTEMPT:-1}"
   [[ "$GITHUB_SHA" =~ ^[a-f0-9]{40}$ && "$GITHUB_RUN_NUMBER" =~ ^[0-9]+$ && "$attempt" =~ ^[0-9]+$ ]] || exit 1
   release="$GITHUB_RUN_NUMBER-$attempt-$GITHUB_SHA"
-  COPYFILE_DISABLE=1 tar -czf "$work/site.tar.gz" -C dist .
+  ssh "${opts[@]}" -p "$port" "$host" manifest > "$work/manifest.json"
+  python3 scripts/package-release.py dist "$work/manifest.json" "$work/site.tar.gz"
   ssh "${opts[@]}" -p "$port" "$host" "publish $release" < "$work/site.tar.gz"
 else
   echo 'Unsupported deployment operation' >&2
