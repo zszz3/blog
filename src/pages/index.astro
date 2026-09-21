@@ -4,6 +4,7 @@ import { Image } from 'astro:assets'
 import { articleUrl, getArticles } from '@/utils/articles'
 import { getArticleCover } from '@/utils/article-cover'
 import { getUniqueTagsWithCount } from 'astro-pure/server'
+import { Button } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
 import ProfileSidebar from '@/components/home/ProfileSidebar.astro'
 import WritingHeatmap from '@/components/home/WritingHeatmap.astro'
@@ -48,6 +49,11 @@ const dateFormat = new Intl.DateTimeFormat('zh-CN', {
                     {post.data.description && <p>{post.data.description}</p>}
                   </div>
                 </a>
+                {post.data.tags.length > 0 && <ul class='article-tags' aria-label={`${post.data.title}的标签`}>
+                  {post.data.tags.map(tag => (
+                    <li><Button title={tag} href={`/tags/${encodeURIComponent(tag)}`} variant='pill' /></li>
+                  ))}
+                </ul>}
               </article>
             </li>
           ))}
@@ -115,6 +121,7 @@ const dateFormat = new Intl.DateTimeFormat('zh-CN', {
   .article-link h2 { color: hsl(var(--primary)); font-size: 1.25rem; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
   .article-link p { color: hsl(var(--muted-foreground)); font-size: 1rem; line-height: 1.6; overflow-wrap: anywhere; }
   .article-link:hover h2, .article-link:focus-visible h2 { text-decoration: underline; text-underline-offset: .2em; }
+  .article-tags { display: flex; flex-wrap: wrap; gap: .5rem; list-style: none; margin: 0; padding: 0 1.1rem .9rem; }
   .profile-column, .discovery-column { display: grid; gap: 1.25rem; }
   .site-overview h2, .recent-activity h2 { margin: 0 0 1.25rem; font-size: 1.125rem; font-weight: 500; }
   .activity-list { list-style: none; margin: 0; padding: 0; }
