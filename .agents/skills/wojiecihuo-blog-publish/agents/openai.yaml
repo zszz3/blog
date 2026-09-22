@@ -1,0 +1,4 @@
+interface:
+  display_name: "我借此火博客发布"
+  short_description: "为我借此火博客整理文章、图片和文档，检查构建并验证 GitHub 到阿里云的自动发布"
+  default_prompt: "使用 $wojiecihuo-blog-publish 将我提供的文章和图片更新到博客，并按本次要求保存草稿或发布。"
