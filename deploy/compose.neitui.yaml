@@ -1,0 +1,19 @@
+name: wojiecihuo-neitui
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/neitui.Dockerfile
+    container_name: wojiecihuo-neitui-api
+    restart: unless-stopped
+    env_file: ./neitui.env
+    volumes:
+      - neitui_data:/data
+    networks:
+      - existing_proxy
+networks:
+  existing_proxy:
+    external: true
+    name: multi-agent-cloud_default
+volumes:
+  neitui_data:

@@ -41,6 +41,7 @@ jobs:
         env:
           SITE_URL: https://wojiecihuo.cn
           PUBLIC_ICP_NUMBER: ${{ vars.PUBLIC_ICP_NUMBER }}
+          PUBLIC_NEITUI_API_ENABLED: ${{ vars.NEITUI_API_ENABLED }}
       - name: Verify generated links and assets
         run: python3 scripts/verify_site.py
       - uses: actions/upload-artifact@v4
