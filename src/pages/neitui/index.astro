@@ -32,7 +32,7 @@ import { referrals } from '../../data/neitui'
                     <dd>{referral.contact}</dd>
                   </div>
                   <div>
-                    <dt>具体联系方式</dt>
+                    <dt>内推人具体联系方式</dt>
                     <dd>{referral.contactDetails}</dd>
                   </div>
                 </dl>
@@ -45,6 +45,7 @@ import { referrals } from '../../data/neitui'
           <div class='empty-mark' aria-hidden='true'>✦</div>
           <h3>暂无内推信息</h3>
           <p>有确认可以公开的内推机会后，会更新在这里。</p>
+          <p class='empty-fields'>内推信息 · 内推联系人 · 内推人具体联系方式</p>
         </div>
       )}
     </section>
@@ -70,6 +71,7 @@ import { referrals } from '../../data/neitui'
   .empty-mark { display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border-radius: .8rem; background: hsl(var(--blue-surface)); color: hsl(var(--primary)); font-size: 1.4rem; }
   .empty-state h3 { margin: 1rem 0 .25rem; font-size: 1.1rem; font-weight: 600; }
   .empty-state p { margin: 0; color: hsl(var(--muted-foreground)); font-size: .95rem; line-height: 1.7; }
+  .empty-state .empty-fields { margin-top: 1rem; color: hsl(var(--primary) / .8); font-size: .8rem; }
   @media (max-width: 640px) {
     .page-heading { padding-bottom: 2rem; }
     .referral-card { grid-template-columns: minmax(0, 1fr); gap: 1.15rem; padding: 1.25rem; }
