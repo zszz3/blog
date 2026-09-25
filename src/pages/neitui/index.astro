@@ -23,7 +23,10 @@ const displayTime = (value: string) => new Date(value).toLocaleString('zh-CN', {
     <section aria-labelledby='referrals-title'>
       <div class='section-heading'>
         <h2 id='referrals-title'>最新内推</h2>
-        <span class='count' id='referral-count'>{apiEnabled ? '加载中' : `${initialReferrals.length} 条信息`}</span>
+        <div class='section-controls'>
+          <span class='count' id='referral-count'>{apiEnabled ? '加载中' : `${initialReferrals.length} 条信息`}</span>
+          <button class='primary-button' id='open-submit' type='button' aria-haspopup='dialog' aria-controls='submit-dialog' hidden>添加内推</button>
+        </div>
       </div>
 
       <div class='table-scroll' id='table-scroll' hidden={initialReferrals.length === 0}>
@@ -58,20 +61,6 @@ const displayTime = (value: string) => new Date(value).toLocaleString('zh-CN', {
       <p class='action-status' id='action-status' role='status'></p>
     </section>
 
-    <section class='submit-section' id='submit-section' aria-labelledby='submit-title' hidden>
-      <h2 id='submit-title'>分享内推</h2>
-      <p>填写信息后，在最后一步输入投稿密码确认发布。</p>
-      <form id='referral-form'>
-        <label for='information'>内推信息</label>
-        <textarea id='information' name='information' rows='5' maxlength='1000' required placeholder='公司、岗位、地点及其他说明'></textarea>
-        <label for='contact'>内推联系人</label>
-        <input id='contact' name='contact' maxlength='80' required autocomplete='name' />
-        <label for='contact-details'>内推人具体联系方式</label>
-        <input id='contact-details' name='contactDetails' maxlength='200' required placeholder='例如：QQ、微信或邮箱' />
-        <label class='consent'><input id='contact-consent' type='checkbox' required /> 我确认联系人同意在此页面公开上述联系方式</label>
-        <button class='primary-button' type='submit'>提交内推</button>
-      </form>
-    </section>
     <p class='submission-unavailable' id='submission-unavailable'>在线投稿入口准备中。</p>
   </main>
 </PageLayout>
@@ -85,6 +74,25 @@ const displayTime = (value: string) => new Date(value).toLocaleString('zh-CN', {
     <td><button class='delete-button' type='button' data-delete aria-label='删除这条内推'>删除</button></td>
   </tr>
 </template>
+
+<form id='referral-form' hidden></form>
+<dialog class='submission-dialog' id='submit-dialog' aria-labelledby='submit-title'>
+  <h2 id='submit-title'>添加内推</h2>
+  <p>填写信息后，在最后一步输入投稿密码确认发布。</p>
+  <div class='submission-fields'>
+    <label for='information'>内推信息</label>
+    <textarea id='information' name='information' form='referral-form' rows='5' maxlength='1000' required placeholder='公司、岗位、地点及其他说明'></textarea>
+    <label for='contact'>内推联系人</label>
+    <input id='contact' name='contact' form='referral-form' maxlength='80' required autocomplete='name' />
+    <label for='contact-details'>内推人具体联系方式</label>
+    <input id='contact-details' name='contactDetails' form='referral-form' maxlength='200' required placeholder='例如：QQ、微信或邮箱' />
+    <label class='consent'><input id='contact-consent' type='checkbox' form='referral-form' required /> 我确认联系人同意在此页面公开上述联系方式</label>
+    <div class='dialog-actions'>
+      <button type='button' data-close='submit-dialog'>取消</button>
+      <button class='primary-button' type='submit' form='referral-form'>下一步</button>
+    </div>
+  </div>
+</dialog>
 
 <dialog class='password-dialog' id='add-dialog' aria-labelledby='add-dialog-title'>
   <form id='add-password-form'>
@@ -130,10 +138,11 @@ const displayTime = (value: string) => new Date(value).toLocaleString('zh-CN', {
   const emptyTitle = document.querySelector<HTMLElement>('#empty-title')!
   const emptyDescription = document.querySelector<HTMLElement>('#empty-description')!
   const template = document.querySelector<HTMLTemplateElement>('#referral-template')!
-  const section = document.querySelector<HTMLElement>('#submit-section')!
+  const openSubmit = document.querySelector<HTMLButtonElement>('#open-submit')!
   const unavailable = document.querySelector<HTMLElement>('#submission-unavailable')!
   const actionStatus = document.querySelector<HTMLElement>('#action-status')!
   const form = document.querySelector<HTMLFormElement>('#referral-form')!
+  const submitDialog = document.querySelector<HTMLDialogElement>('#submit-dialog')!
   const addDialog = document.querySelector<HTMLDialogElement>('#add-dialog')!
   const deleteDialog = document.querySelector<HTMLDialogElement>('#delete-dialog')!
   let deleteId = ''
@@ -195,11 +204,19 @@ const displayTime = (value: string) => new Date(value).toLocaleString('zh-CN', {
     const data = await response.json()
     if (!Array.isArray(data.referrals)) throw new Error('Invalid response')
     render(data.referrals)
-    section.hidden = false
+    openSubmit.hidden = false
     unavailable.hidden = true
   }
 
   refresh().catch(() => { unavailable.textContent = '在线投稿暂不可用，请稍后再试。' })
+
+  openSubmit.addEventListener('click', () => {
+    form.reset()
+    submitDialog.showModal()
+    document.querySelector<HTMLTextAreaElement>('#information')!.focus()
+  })
+
+  submitDialog.addEventListener('cancel', () => form.reset())
 
   form.addEventListener('submit', event => {
     event.preventDefault()
@@ -223,6 +240,7 @@ const displayTime = (value: string) => new Date(value).toLocaleString('zh-CN', {
         password: document.querySelector<HTMLInputElement>('#add-password')!.value
       })
       addDialog.close()
+      submitDialog.close()
       form.reset()
       actionStatus.textContent = '发布成功，内推信息已加入列表。'
       await refresh().catch(() => { actionStatus.textContent = '发布成功，请刷新页面查看。' })
@@ -254,7 +272,9 @@ const displayTime = (value: string) => new Date(value).toLocaleString('zh-CN', {
 
   document.querySelectorAll<HTMLButtonElement>('[data-close]').forEach(button => {
     button.addEventListener('click', () => {
-      document.querySelector<HTMLDialogElement>(`#${button.dataset.close}`)?.close()
+      const dialog = document.querySelector<HTMLDialogElement>(`#${button.dataset.close}`)
+      dialog?.close()
+      if (dialog === submitDialog) form.reset()
     })
   })
 </script>
@@ -268,6 +288,7 @@ const displayTime = (value: string) => new Date(value).toLocaleString('zh-CN', {
   .intro { max-width: 38rem; margin: .9rem 0 0; color: hsl(var(--muted-foreground)); font-size: 1rem; line-height: 1.8; }
   .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin: 2.2rem 0 1.1rem; }
   .section-heading h2 { margin: 0; font-size: 1.25rem; font-weight: 600; }
+  .section-controls { display: flex; align-items: center; gap: 1rem; }
   .count { color: hsl(var(--muted-foreground)); font-size: .875rem; white-space: nowrap; }
   .table-scroll { overflow-x: auto; border: 1px solid hsl(var(--border)); border-radius: .8rem; background: hsl(var(--background) / .9); }
   .referral-table { width: 100%; min-width: 51rem; border-collapse: collapse; table-layout: fixed; text-align: left; }
@@ -287,14 +308,12 @@ const displayTime = (value: string) => new Date(value).toLocaleString('zh-CN', {
   .empty-state p { margin: 0; color: hsl(var(--muted-foreground)); font-size: .95rem; line-height: 1.7; }
   .empty-state .empty-fields { margin-top: 1rem; color: hsl(var(--primary) / .8); font-size: .8rem; }
   .action-status { min-height: 1.5em; margin: 1rem 0 0; color: hsl(var(--primary)); font-size: .9rem; }
-  .submit-section { margin-top: 2.5rem; padding: 1.5rem; border: 1px solid hsl(var(--border)); border-radius: 1rem; }
-  .submit-section h2 { margin: 0; font-size: 1.25rem; font-weight: 600; }
-  .submit-section > p, .submission-unavailable { color: hsl(var(--muted-foreground)); font-size: .9rem; line-height: 1.7; }
-  #referral-form { display: grid; gap: .6rem; margin-top: 1.4rem; }
-  #referral-form > label:not(.consent), .password-dialog label { font-size: .9rem; font-weight: 600; }
-  #referral-form input:not([type=checkbox]), #referral-form textarea, .password-dialog input { width: 100%; padding: .75rem .85rem; border: 1px solid hsl(var(--border)); border-radius: .55rem; background: hsl(var(--background)); color: hsl(var(--foreground)); font: inherit; }
-  #referral-form textarea { resize: vertical; }
-  #referral-form input:focus-visible, #referral-form textarea:focus-visible, .password-dialog input:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+  .submission-unavailable { color: hsl(var(--muted-foreground)); font-size: .9rem; line-height: 1.7; }
+  .submission-fields { display: grid; gap: .6rem; margin-top: 1.2rem; }
+  .submission-fields > label:not(.consent), .password-dialog label { font-size: .9rem; font-weight: 600; }
+  .submission-fields input:not([type=checkbox]), .submission-fields textarea, .password-dialog input { width: 100%; padding: .75rem .85rem; border: 1px solid hsl(var(--border)); border-radius: .55rem; background: hsl(var(--background)); color: hsl(var(--foreground)); font: inherit; }
+  .submission-fields textarea { resize: vertical; }
+  .submission-fields input:focus-visible, .submission-fields textarea:focus-visible, .password-dialog input:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
   .consent { display: flex; align-items: flex-start; gap: .55rem; margin: .6rem 0; color: hsl(var(--muted-foreground)); font-size: .85rem; line-height: 1.6; }
   .consent input { margin-top: .25rem; }
   .primary-button { justify-self: start; padding: .65rem 1.15rem; border: 0; border-radius: .55rem; background: hsl(var(--primary)); color: hsl(var(--background)); font-size: .9rem; font-weight: 600; cursor: pointer; }
@@ -302,10 +321,12 @@ const displayTime = (value: string) => new Date(value).toLocaleString('zh-CN', {
   .delete-button { padding: 0; border: 0; background: transparent; color: hsl(var(--muted-foreground)); font-size: .8rem; cursor: pointer; }
   .delete-button:hover { color: hsl(var(--primary)); text-decoration: underline; }
   .delete-button:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 3px; }
-  .password-dialog { width: min(25rem, calc(100vw - 2rem)); padding: 1.5rem; border: 1px solid hsl(var(--border)); border-radius: 1rem; background: hsl(var(--background)); color: hsl(var(--foreground)); box-shadow: 0 18px 60px hsl(var(--foreground) / .18); }
-  .password-dialog::backdrop { background: hsl(0 0% 0% / .4); }
-  .password-dialog h2 { margin: 0; font-size: 1.2rem; }
-  .password-dialog p { color: hsl(var(--muted-foreground)); font-size: .9rem; line-height: 1.6; }
+  .submission-dialog, .password-dialog { padding: 1.5rem; border: 1px solid hsl(var(--border)); border-radius: 1rem; background: hsl(var(--background)); color: hsl(var(--foreground)); box-shadow: 0 18px 60px hsl(var(--foreground) / .18); }
+  .submission-dialog { width: min(38rem, calc(100vw - 2rem)); max-height: min(90dvh, 46rem); overflow-y: auto; }
+  .password-dialog { width: min(25rem, calc(100vw - 2rem)); }
+  .submission-dialog::backdrop, .password-dialog::backdrop { background: hsl(0 0% 0% / .4); }
+  .submission-dialog h2, .password-dialog h2 { margin: 0; font-size: 1.2rem; }
+  .submission-dialog p, .password-dialog p { color: hsl(var(--muted-foreground)); font-size: .9rem; line-height: 1.6; }
   .password-dialog label { display: block; margin: 1.2rem 0 .5rem; }
   .password-dialog .dialog-error { min-height: 1.4em; margin: .5rem 0; color: #c63b3b; }
   .dialog-actions { display: flex; justify-content: flex-end; align-items: center; gap: .8rem; }
@@ -313,5 +334,7 @@ const displayTime = (value: string) => new Date(value).toLocaleString('zh-CN', {
   @media (max-width: 640px) {
     .page-heading { padding-bottom: 2rem; }
     .referral-table { min-width: 48rem; }
+    .section-heading { align-items: flex-start; }
+    .section-controls { flex-wrap: wrap; justify-content: flex-end; gap: .5rem; }
   }
 </style>
