@@ -21,7 +21,6 @@ export const navigation: NavigationItem[] = [
     ]
   },
   { title: '项目', link: '/projects', icon: 'package' },
-  { title: '内推', link: '/neitui', icon: 'list' },
   { title: '友链', link: '/links', icon: 'link' },
   { title: '关于', link: '/about', icon: 'info' },
   {

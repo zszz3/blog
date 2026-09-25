@@ -1,5 +1,5 @@
 ---
-import PageLayout from '@/layouts/BaseLayout.astro'
+import PageLayout from '@/layouts/StandaloneNeituiLayout.astro'
 import { referrals } from '../../data/neitui'
 
 // Once the API is live, never embed entries in static HTML: deleted contacts
@@ -8,7 +8,7 @@ const apiEnabled = import.meta.env.PUBLIC_NEITUI_API_ENABLED === 'true'
 const initialReferrals = apiEnabled ? [] : referrals
 ---
 
-<PageLayout meta={{ title: '内推', description: '分享经过确认的内推信息与联系人。' }}>
+<PageLayout>
   <main class='referrals-page animate'>
     <header class='page-heading'>
       <p class='eyebrow'>Opportunities</p>
@@ -246,7 +246,7 @@ const initialReferrals = apiEnabled ? [] : referrals
 
 <style>
   [hidden] { display: none !important; }
-  .referrals-page { width: 100%; max-width: 58rem; margin: 0 auto; padding: .5rem 0 4rem; }
+  .referrals-page { width: 100%; max-width: 60rem; margin: 0 auto; padding: clamp(2rem, 6vw, 4.5rem) 1rem 4rem; }
   .page-heading { padding: .5rem 0 2.5rem; border-bottom: 1px solid hsl(var(--border) / .8); }
   .eyebrow { margin: 0 0 .55rem; color: hsl(var(--primary)); font-size: .75rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
   h1 { margin: 0; color: hsl(var(--primary)); font-size: clamp(2rem, 5vw, 2.8rem); font-weight: 650; line-height: 1.3; }
