@@ -5,6 +5,7 @@ export interface Referral {
   information: string
   contact: string
   contactDetails: string
+  createdAt: string
 }
 
 // This public seed is also used to initialize the server database.

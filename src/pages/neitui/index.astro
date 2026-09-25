@@ -6,6 +6,10 @@ import { referrals } from '../../data/neitui'
 // must not reappear if the API is temporarily unavailable.
 const apiEnabled = import.meta.env.PUBLIC_NEITUI_API_ENABLED === 'true'
 const initialReferrals = apiEnabled ? [] : referrals
+const displayTime = (value: string) => new Date(value).toLocaleString('zh-CN', {
+  timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit',
+  hour: '2-digit', minute: '2-digit', hour12: false
+})
 ---
 
 <PageLayout meta={{ title: '内推', description: '分享经过确认的内推信息与联系人。' }}>
@@ -22,33 +26,34 @@ const initialReferrals = apiEnabled ? [] : referrals
         <span class='count' id='referral-count'>{apiEnabled ? '加载中' : `${initialReferrals.length} 条信息`}</span>
       </div>
 
-      <ul class='referral-list' id='referral-list' hidden={initialReferrals.length === 0}>
-        {initialReferrals.map(referral => (
-          <li>
-            <article class='referral-card'>
-              <div class='information'>
-                <h3>内推信息</h3>
-                <p>{referral.information}</p>
-              </div>
-              <dl class='contact-fields'>
-                <div>
-                  <dt>内推联系人</dt>
-                  <dd>{referral.contact}</dd>
-                </div>
-                <div>
-                  <dt>内推人具体联系方式</dt>
-                  <dd>{referral.contactDetails}</dd>
-                </div>
-              </dl>
-            </article>
-          </li>
-        ))}
-      </ul>
+      <div class='table-scroll' id='table-scroll' hidden={initialReferrals.length === 0}>
+        <table class='referral-table'>
+          <thead>
+            <tr>
+              <th scope='col'>发布时间</th>
+              <th scope='col'>内推信息</th>
+              <th scope='col'>内推联系人</th>
+              <th scope='col'>具体联系方式</th>
+              {apiEnabled && <th scope='col'>操作</th>}
+            </tr>
+          </thead>
+          <tbody id='referral-list'>
+            {initialReferrals.map(referral => (
+              <tr>
+                <td><time datetime={referral.createdAt}>{displayTime(referral.createdAt)}</time></td>
+                <td class='information-cell'>{referral.information}</td>
+                <td>{referral.contact}</td>
+                <td>{referral.contactDetails}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <div class='empty-state' id='empty-state' hidden={initialReferrals.length > 0}>
         <div class='empty-mark' aria-hidden='true'>✦</div>
         <h3 id='empty-title'>{apiEnabled ? '内推信息暂不可用' : '暂无内推信息'}</h3>
         <p id='empty-description'>{apiEnabled ? '请稍后再试。' : '有确认可以公开的内推机会后，会更新在这里。'}</p>
-        <p class='empty-fields'>内推信息 · 内推联系人 · 内推人具体联系方式</p>
+        <p class='empty-fields'>发布时间 · 内推信息 · 联系人 · 联系方式</p>
       </div>
       <p class='action-status' id='action-status' role='status'></p>
     </section>
@@ -72,16 +77,13 @@ const initialReferrals = apiEnabled ? [] : referrals
 </PageLayout>
 
 <template id='referral-template'>
-  <li>
-    <article class='referral-card'>
-      <div class='information'><h3>内推信息</h3><p data-field='information'></p></div>
-      <dl class='contact-fields'>
-        <div><dt>内推联系人</dt><dd data-field='contact'></dd></div>
-        <div><dt>内推人具体联系方式</dt><dd data-field='contactDetails'></dd></div>
-      </dl>
-      <button class='delete-button' type='button' data-delete>删除这条内推</button>
-    </article>
-  </li>
+  <tr>
+    <td><time data-field='createdAt'></time></td>
+    <td class='information-cell' data-field='information'></td>
+    <td data-field='contact'></td>
+    <td data-field='contactDetails'></td>
+    <td><button class='delete-button' type='button' data-delete aria-label='删除这条内推'>删除</button></td>
+  </tr>
 </template>
 
 <dialog class='password-dialog' id='add-dialog' aria-labelledby='add-dialog-title'>
@@ -118,9 +120,11 @@ const initialReferrals = apiEnabled ? [] : referrals
     information: string
     contact: string
     contactDetails: string
+    createdAt: string
   }
 
-  const list = document.querySelector<HTMLUListElement>('#referral-list')!
+  const list = document.querySelector<HTMLTableSectionElement>('#referral-list')!
+  const tableScroll = document.querySelector<HTMLElement>('#table-scroll')!
   const count = document.querySelector<HTMLElement>('#referral-count')!
   const empty = document.querySelector<HTMLElement>('#empty-state')!
   const emptyTitle = document.querySelector<HTMLElement>('#empty-title')!
@@ -154,20 +158,31 @@ const initialReferrals = apiEnabled ? [] : referrals
   function render(items: ReferralRecord[]) {
     const fragment = document.createDocumentFragment()
     for (const item of items) {
-      const card = template.content.cloneNode(true) as DocumentFragment
+      const row = template.content.cloneNode(true) as DocumentFragment
       for (const field of ['information', 'contact', 'contactDetails'] as const) {
-        card.querySelector<HTMLElement>(`[data-field='${field}']`)!.textContent = item[field]
+        row.querySelector<HTMLElement>(`[data-field='${field}']`)!.textContent = item[field]
       }
-      card.querySelector<HTMLButtonElement>('[data-delete]')!.addEventListener('click', () => {
+      const time = row.querySelector<HTMLTimeElement>('[data-field=createdAt]')!
+      const timestamp = new Date(item.createdAt)
+      if (!Number.isNaN(timestamp.getTime())) {
+        time.dateTime = item.createdAt
+        time.textContent = timestamp.toLocaleString('zh-CN', {
+          timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit', hour12: false
+        })
+      } else {
+        time.textContent = '—'
+      }
+      row.querySelector<HTMLButtonElement>('[data-delete]')!.addEventListener('click', () => {
         deleteId = item.id
         document.querySelector<HTMLInputElement>('#delete-password')!.value = ''
         document.querySelector<HTMLElement>('#delete-error')!.textContent = ''
         deleteDialog.showModal()
       })
-      fragment.append(card)
+      fragment.append(row)
     }
     list.replaceChildren(fragment)
-    list.hidden = items.length === 0
+    tableScroll.hidden = items.length === 0
     empty.hidden = items.length > 0
     emptyTitle.textContent = '暂无内推信息'
     emptyDescription.textContent = '有确认可以公开的内推机会后，会更新在这里。'
@@ -254,12 +269,18 @@ const initialReferrals = apiEnabled ? [] : referrals
   .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin: 2.2rem 0 1.1rem; }
   .section-heading h2 { margin: 0; font-size: 1.25rem; font-weight: 600; }
   .count { color: hsl(var(--muted-foreground)); font-size: .875rem; white-space: nowrap; }
-  .referral-list { display: grid; gap: 1rem; margin: 0; padding: 0; list-style: none; }
-  .referral-card { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(14rem, 1fr); gap: 1.5rem; padding: 1.5rem; border: 1px solid hsl(var(--border) / .85); border-radius: 1rem; background: hsl(var(--background) / .9); box-shadow: 0 5px 24px hsl(var(--primary) / .035); }
-  .information h3, dt { margin: 0 0 .4rem; color: hsl(var(--muted-foreground)); font-size: .8rem; font-weight: 600; }
-  .information p { margin: 0; color: hsl(var(--foreground)); font-size: 1.05rem; font-weight: 550; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .contact-fields { display: grid; align-content: start; gap: 1.1rem; margin: 0; padding-left: 1.5rem; border-left: 1px solid hsl(var(--border)); }
-  dd { margin: 0; font-size: .95rem; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .table-scroll { overflow-x: auto; border: 1px solid hsl(var(--border)); border-radius: .8rem; background: hsl(var(--background) / .9); }
+  .referral-table { width: 100%; min-width: 51rem; border-collapse: collapse; table-layout: fixed; text-align: left; }
+  .referral-table th, .referral-table td { padding: .9rem .8rem; vertical-align: top; overflow-wrap: anywhere; }
+  .referral-table th { background: hsl(var(--muted) / .55); color: hsl(var(--muted-foreground)); font-size: .8rem; font-weight: 650; white-space: nowrap; }
+  .referral-table th:first-child { width: 8.5rem; }
+  .referral-table th:nth-child(3) { width: 7.5rem; }
+  .referral-table th:nth-child(4) { width: 10.5rem; }
+  .referral-table th:last-child:nth-child(5) { width: 4.5rem; }
+  .referral-table tbody tr + tr { border-top: 1px solid hsl(var(--border) / .7); }
+  .referral-table td { font-size: .9rem; line-height: 1.65; white-space: pre-wrap; }
+  .referral-table time { color: hsl(var(--muted-foreground)); font-size: .82rem; white-space: nowrap; }
+  .information-cell { color: hsl(var(--foreground)); font-weight: 550; }
   .empty-state { display: flex; min-height: 15rem; flex-direction: column; align-items: center; justify-content: center; padding: 2.5rem 1.5rem; border: 1px dashed hsl(var(--border)); border-radius: 1rem; background: hsl(var(--muted) / .28); text-align: center; }
   .empty-mark { display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border-radius: .8rem; background: hsl(var(--blue-surface)); color: hsl(var(--primary)); font-size: 1.4rem; }
   .empty-state h3 { margin: 1rem 0 .25rem; font-size: 1.1rem; font-weight: 600; }
@@ -278,8 +299,9 @@ const initialReferrals = apiEnabled ? [] : referrals
   .consent input { margin-top: .25rem; }
   .primary-button { justify-self: start; padding: .65rem 1.15rem; border: 0; border-radius: .55rem; background: hsl(var(--primary)); color: hsl(var(--background)); font-size: .9rem; font-weight: 600; cursor: pointer; }
   .primary-button:disabled { opacity: .55; cursor: wait; }
-  .delete-button { grid-column: 1 / -1; justify-self: end; border: 0; background: transparent; color: hsl(var(--muted-foreground)); font-size: .8rem; cursor: pointer; }
+  .delete-button { padding: 0; border: 0; background: transparent; color: hsl(var(--muted-foreground)); font-size: .8rem; cursor: pointer; }
   .delete-button:hover { color: hsl(var(--primary)); text-decoration: underline; }
+  .delete-button:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 3px; }
   .password-dialog { width: min(25rem, calc(100vw - 2rem)); padding: 1.5rem; border: 1px solid hsl(var(--border)); border-radius: 1rem; background: hsl(var(--background)); color: hsl(var(--foreground)); box-shadow: 0 18px 60px hsl(var(--foreground) / .18); }
   .password-dialog::backdrop { background: hsl(0 0% 0% / .4); }
   .password-dialog h2 { margin: 0; font-size: 1.2rem; }
@@ -290,10 +312,6 @@ const initialReferrals = apiEnabled ? [] : referrals
   .dialog-actions button:not(.primary-button) { padding: .6rem; border: 0; background: transparent; color: hsl(var(--muted-foreground)); cursor: pointer; }
   @media (max-width: 640px) {
     .page-heading { padding-bottom: 2rem; }
-    .referral-card { grid-template-columns: minmax(0, 1fr); gap: 1.15rem; padding: 1.25rem; }
-    .contact-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; padding: 1rem 0 0; border-left: 0; border-top: 1px solid hsl(var(--border)); }
-  }
-  @media (max-width: 420px) {
-    .contact-fields { grid-template-columns: minmax(0, 1fr); }
+    .referral-table { min-width: 48rem; }
   }
 </style>
