@@ -1,4 +1,5 @@
 import { rehypeHeadingIds } from '@astrojs/markdown-remark'
+import sitemap from '@astrojs/sitemap'
 import AstroPureIntegration from 'astro-pure'
 import { defineConfig, fontProviders, svgoOptimizer } from 'astro/config'
 import rehypeKatex from 'rehype-katex'
@@ -125,8 +126,8 @@ export default defineConfig({
 
   // [Integrations]
   integrations: [
-    // astro-pure will automatically add sitemap, mdx & unocss
-    // sitemap(),
+    sitemap({ filter: page => new URL(page).pathname.replace(/\/$/, '') !== '/neitui' }),
+    // astro-pure will automatically add mdx & unocss
     // mdx(),
     AstroPureIntegration(config)
   ],

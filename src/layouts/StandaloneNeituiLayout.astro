@@ -1,0 +1,23 @@
+---
+import { Font } from 'astro:assets'
+import { ThemeProvider } from 'astro-pure/components/basic'
+import '@/assets/styles/global.css'
+import '@/assets/styles/app.css'
+---
+
+<!doctype html>
+<html lang='zh-CN'>
+  <head>
+    <meta charset='utf-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1' />
+    <meta name='color-scheme' content='light dark' />
+    <meta name='robots' content='noindex, nofollow' />
+    <title>内推信息</title>
+    <link rel='icon' href='/favicon/favicon-32x32.png' sizes='32x32' />
+    <Font cssVariable='--font-google-sans-code' preload={[{ subset: 'latin', style: 'normal' }]} />
+    <ThemeProvider />
+  </head>
+  <body class='min-h-screen bg-background text-foreground' data-pagefind-ignore='all'>
+    <slot />
+  </body>
+</html>

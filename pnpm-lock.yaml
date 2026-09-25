@@ -20,6 +20,9 @@ importers:
       '@astrojs/rss':
         specifier: 4.0.18
         version: 4.0.18
+      '@astrojs/sitemap':
+        specifier: 3.7.2
+        version: 3.7.2
       '@shikijs/core':
         specifier: ^4.0.0
         version: 4.4.3
@@ -7103,7 +7106,8 @@ snapshots:
       source-map-js: 1.2.1
     optional: true
 
-  sax@1.4.1: {}
+  sax@1.4.1:
+    optional: true
 
   sax@1.6.1: {}
 
@@ -7169,7 +7173,7 @@ snapshots:
       '@types/node': 24.13.4
       '@types/sax': 1.2.7
       arg: 5.0.2
-      sax: 1.4.1
+      sax: 1.6.1
 
   smol-toml@1.8.0: {}
 
