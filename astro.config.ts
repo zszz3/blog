@@ -34,7 +34,8 @@ export default defineConfig({
   server: { host: true },
   vite: {
     // Pure's client utilities use a virtual module resolved by its Vite plugin.
-    optimizeDeps: { exclude: ['astro-pure/utils'] }
+    optimizeDeps: { exclude: ['astro-pure/utils'] },
+    server: { proxy: { '/api/neitui': process.env.NEITUI_API_DEV_URL || 'http://127.0.0.1:8080' } }
   },
   // https://docs.astro.build/en/guides/prefetch/
   prefetch: {

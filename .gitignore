@@ -31,3 +31,4 @@ yarn.lock
 __pycache__/
 *.pyc
 .env.local
+deploy/neitui.env
