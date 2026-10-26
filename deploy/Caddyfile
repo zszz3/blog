@@ -17,6 +17,12 @@ wojiecihuo.cn, www.wojiecihuo.cn {
         header Cache-Control "public, max-age=31536000, immutable"
         file_server
     }
+    @livesync path /sync /sync/*
+    handle @livesync {
+        uri strip_prefix /sync
+        reverse_proxy obsidian-couchdb:5984
+    }
+
     @neitui_api path /api/neitui /api/neitui/*
     handle @neitui_api {
         reverse_proxy wojiecihuo-neitui-api:8080 {
