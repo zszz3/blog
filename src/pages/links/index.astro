@@ -6,26 +6,211 @@ import { Collapse, Timeline } from 'astro-pure/user'
 import PageLayout from '@/layouts/CommonPage.astro'
 import FriendList from '@/components/links/FriendList.astro'
 
-const headings = [
-  { depth: 2, slug: 'common-links', text: '朋友们' },
-  { depth: 2, slug: 'special-links', text: '特别链接' }
-]
-
 const { friends } = links
+const [common, unavailable, special] = friends
 const linksConf = config.integ.links
+const logbook = linksConf.logbook ?? []
+
+// 本站信息，用来给对方填友链
+const fieldLabel: Record<string, string> = {
+  Name: '名称',
+  Desc: '简介',
+  Link: '地址',
+  Avatar: '头像'
+}
+const siteInfo = linksConf.applyTip.map((item: { name: string; val: string }) => ({
+  key: item.name,
+  label: fieldLabel[item.name] ?? item.name,
+  value: item.val
+}))
+const siteInfoJson = JSON.stringify(
+  {
+    name: siteInfo.find((i) => i.key === 'Name')?.value,
+    intro: siteInfo.find((i) => i.key === 'Desc')?.value,
+    link: siteInfo.find((i) => i.key === 'Link')?.value,
+    avatar: siteInfo.find((i) => i.key === 'Avatar')?.value
+  },
+  null,
+  2
+)
+
+const headings = [
+  { depth: 2, slug: 'friends', text: '朋友们' },
+  ...(special.link_list.length ? [{ depth: 2, slug: 'special', text: '特别链接' }] : []),
+  { depth: 2, slug: 'exchange', text: '交换友链' }
+]
 ---
 
 <PageLayout title='友链' {headings}>
   <p>收藏喜欢的个人站点，也期待认识新的朋友。</p>
-  <h2 id='common-links'>朋友们</h2>
-  <FriendList list={friends[0]} />
-  <Collapse title='暂时无法访问'>
-    <FriendList list={friends[1]} />
-  </Collapse>
-  <Collapse title='友链记录'>
-    <Timeline events={linksConf.logbook} />
-  </Collapse>
-  <h2 id='special-links'>特别链接</h2>
-  <FriendList list={friends[2]} />
 
+  <h2 id='friends'>
+    朋友们
+    <span class='count'>{common.link_list.length}</span>
+  </h2>
+  {
+    common.link_list.length > 0 ? (
+      <FriendList list={common} />
+    ) : (
+      <p class='text-muted-foreground'>还没有添加站点。</p>
+    )
+  }
+
+  {
+    unavailable.link_list.length > 0 && (
+      <Collapse title={`暂时无法访问（${unavailable.link_list.length}）`}>
+        <FriendList list={unavailable} muted />
+      </Collapse>
+    )
+  }
+
+  {
+    special.link_list.length > 0 && (
+      <>
+        <h2 id='special'>特别链接</h2>
+        <FriendList list={special} />
+      </>
+    )
+  }
+
+  <h2 id='exchange'>交换友链</h2>
+  <p>
+    欢迎交换友链。先在你的站点加上本站，再到
+    <a href='https://github.com/zszz3' target='_blank' rel='noopener'>GitHub</a>
+    告诉我你的站点信息，我看到后会加上。
+  </p>
+
+  <div class='site-card not-prose'>
+    <div class='site-card-head'>
+      <img src={siteInfo.find((i) => i.key === 'Avatar')?.value} alt='' width='40' height='40' />
+      <div>
+        <div class='site-card-title'>本站信息</div>
+        <div class='site-card-sub'>点击右侧按钮复制</div>
+      </div>
+      <button type='button' class='copy-btn' data-copy={siteInfoJson}>复制 JSON</button>
+    </div>
+    <dl>
+      {
+        siteInfo.map((item) => (
+          <div class='site-row'>
+            <dt>{item.label}</dt>
+            <dd>{item.value}</dd>
+            <button type='button' class='copy-btn' data-copy={item.value} aria-label={`复制${item.label}`}>
+              复制
+            </button>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+
+  {
+    logbook.length > 0 && (
+      <Collapse title='友链记录'>
+        <Timeline events={logbook} />
+      </Collapse>
+    )
+  }
 </PageLayout>
+
+<script>
+  function bindCopy() {
+    document.querySelectorAll<HTMLButtonElement>('button[data-copy]').forEach((btn) => {
+      if (btn.dataset.bound) return
+      btn.dataset.bound = '1'
+      const original = btn.textContent
+      btn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(btn.dataset.copy ?? '')
+          btn.textContent = '已复制'
+        } catch {
+          btn.textContent = '复制失败'
+        }
+        setTimeout(() => (btn.textContent = original), 1500)
+      })
+    })
+  }
+  bindCopy()
+  document.addEventListener('astro:page-load', bindCopy)
+</script>
+
+<style>
+  h2 .count {
+    margin-left: 0.4rem;
+    padding: 0.05rem 0.5rem;
+    border-radius: 9999px;
+    background: hsl(var(--primary) / 0.1);
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: hsl(var(--primary));
+    vertical-align: middle;
+  }
+  .site-card {
+    margin-top: 1rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 1rem;
+    background: hsl(var(--muted) / 0.5);
+    overflow: hidden;
+  }
+  .site-card-head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1.1rem;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .site-card-head img {
+    width: 2.5rem;
+    height: 2.5rem;
+    margin: 0;
+    border-radius: 0.6rem;
+  }
+  .site-card-head > div {
+    flex: 1;
+  }
+  .site-card-title {
+    font-weight: 600;
+  }
+  .site-card-sub {
+    font-size: 0.8rem;
+    color: hsl(var(--muted-foreground));
+  }
+  .site-card dl {
+    margin: 0;
+    padding: 0.35rem 0;
+  }
+  .site-row {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.45rem 1.1rem;
+  }
+  .site-row dt {
+    font-size: 0.85rem;
+    color: hsl(var(--muted-foreground));
+  }
+  .site-row dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.85rem;
+  }
+  .copy-btn {
+    padding: 0.2rem 0.65rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.5rem;
+    background: hsl(var(--background));
+    font-size: 0.78rem;
+    color: hsl(var(--muted-foreground));
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      color 0.2s,
+      border-color 0.2s;
+  }
+  .copy-btn:hover {
+    border-color: hsl(var(--primary) / 0.5);
+    color: hsl(var(--primary));
+  }
+</style>

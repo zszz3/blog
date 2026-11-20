@@ -10,7 +10,7 @@ export const theme: ThemeUserConfig = {
   /** Description metadata for your website. Can be used in page metadata. */
   description: '代码、记录与日常 · 追悔莫及之物皆美不胜收',
   /** The default favicon for your site which should be a path to an image in the `public/` directory. */
-  favicon: '/favicon/favicon-light-32.png',
+  favicon: '/favicon/favicon-light-192.png',
   /** The default social card image for your site which should be a path to an image in the `public/` directory. */
   socialCard: '',
   /** Specify the default language for this site. */
@@ -95,7 +95,7 @@ export const integ: IntegrationUserConfig = {
       { name: 'Name', val: theme.title },
       { name: 'Desc', val: theme.description || 'Null' },
       { name: 'Link', val: 'https://wojiecihuo.cn/' },
-      { name: 'Avatar', val: 'https://wojiecihuo.cn/favicon/favicon-light-32.png' }
+      { name: 'Avatar', val: 'https://wojiecihuo.cn/favicon/favicon-light-192.png' }
     ],
     // Cache avatars in `public/avatars/` to improve user experience.
     cacheAvatar: false

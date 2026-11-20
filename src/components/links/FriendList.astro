@@ -1,8 +1,4 @@
 ---
-import { Image } from 'astro:assets'
-
-import config from '@/site-config'
-
 interface AvatarCache {
   hash: string
   path: string
@@ -22,97 +18,178 @@ interface FriendList {
   link_list: Friend[]
 }
 
-function shuffle(arr: Friend[]) {
-  return arr.sort(() => {
-    return Math.random() - 0.5
-  })
-}
-
 interface Props {
-  title?: string
   list: FriendList
+  muted?: boolean
 }
-const { title, list: friendList, ...props } = Astro.props
 
-const getAvatarSrc = (friend: Friend) =>
-  (config.integ?.links?.cacheAvatar ?? false)
-    ? (friend.avatar_cache?.path ?? friend.avatar)
-    : friend.avatar
+const { list, muted = false } = Astro.props
+
+const hostOf = (link: string) => {
+  try {
+    return new URL(link).hostname.replace(/^www\./, '')
+  } catch {
+    return link
+  }
+}
+
+// 按名称排序，构建结果稳定，不会每次部署换顺序
+const friends = [...list.link_list].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))
 ---
 
-{title && <h2 id={friendList.id_name}>{title}</h2>}
-<div class='grid gap-3.5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3' {...props}>
-  {
-    friendList.link_list.length > 0 ? (
-      shuffle(friendList.link_list).map((frd: Friend) => (
-        <a href={frd.link} target='_blank' class='no-underline'>
-          <div class='group relative h-full overflow-hidden rounded-2xl border bg-background px-2.5 py-1.5 transition-colors hover:bg-muted sm:px-4 sm:py-2'>
-            <div class='relative z-10 flex h-full items-center gap-3'>
-              {/* avatar */}
-              <div class='relative h-14 w-14 min-w-14 overflow-hidden rounded-full'>
-                <Image
-                  class='my-0 bg-card'
-                  src={getAvatarSrc(frd)}
-                  height={80}
-                  width={80}
-                  alt='avatar'
-                  loading='lazy'
-                />
-                <div class='absolute start-0 top-0 h-full w-full'>
-                  <div class='flex h-full w-full items-center justify-center rounded-full bg-foreground opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-50'>
-                    <svg
-                      xmlns='http://www.w3.org/2000/svg'
-                      width='32'
-                      height='32'
-                      viewBox='0 0 24 24'
-                      fill='none'
-                      stroke-width='2.5'
-                      stroke-linecap='round'
-                      stroke-linejoin='round'
-                      class='me-2 stroke-background'
-                    >
-                      <line
-                        x1='5'
-                        y1='12'
-                        x2='19'
-                        y2='12'
-                        class='translate-x-4 scale-x-0 transition-all duration-300 ease-in-out group-hover:translate-x-1 group-hover:scale-x-100'
-                      />
-                      <polyline
-                        points='12 5 19 12 12 19'
-                        class='translate-x-0 transition-all duration-300 ease-in-out group-hover:translate-x-1'
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-              {/* details */}
-              <div class='flex flex-col gap-y-1'>
-                <p class='my-0 line-clamp-1 text-sm'>{frd.name} </p>
-                <p class='my-0 line-clamp-1 text-xs text-muted-foreground'>{frd.intro}</p>
-              </div>
-            </div>
-            {/* avatar bg */}
-            <Image
-              class='absolute -start-2 top-0 z-0 my-0 h-full w-2/3 bg-white object-cover opacity-15'
-              src={getAvatarSrc(frd)}
-              height={80}
-              width={80}
-              alt='avatar bg'
-              loading='lazy'
-              style={{
-                msMaskImage:
-                  '-ms-linear-gradient(right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%)',
-                WebkitMaskImage:
-                  '-webkit-linear-gradient(right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%)',
-                maskImage: 'linear-gradient(to left, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 100%)'
-              }}
-            />
-          </div>
-        </a>
-      ))
-    ) : (
-      <p>这里还没有添加站点。</p>
-    )
+{
+  friends.length > 0 && (
+    <ul class='friend-grid not-prose'>
+      {friends.map((frd) => (
+        <li>
+          <a
+            href={frd.link}
+            target='_blank'
+            rel='noopener'
+            class:list={['friend-card group', muted && 'is-muted']}
+          >
+            <span class='friend-avatar' data-initial={frd.name.slice(0, 1)}>
+              <img
+                src={frd.avatar_cache?.path ?? frd.avatar}
+                alt=''
+                width='56'
+                height='56'
+                loading='lazy'
+                decoding='async'
+                referrerpolicy='no-referrer'
+                onerror="this.remove()"
+              />
+            </span>
+            <span class='friend-body'>
+              <span class='friend-name'>
+                {frd.name}
+                <svg class='friend-arrow' viewBox='0 0 24 24' aria-hidden='true'>
+                  <path d='M7 17 17 7M9 7h8v8' />
+                </svg>
+              </span>
+              {frd.intro && <span class='friend-intro'>{frd.intro}</span>}
+              <span class='friend-host'>{hostOf(frd.link)}</span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+<style>
+  .friend-grid {
+    display: grid;
+    gap: 0.875rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
   }
-</div>
+  @media (min-width: 640px) {
+    .friend-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .friend-card {
+    display: flex;
+    align-items: center;
+    gap: 0.95rem;
+    height: 100%;
+    padding: 0.95rem 1.1rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 1rem;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    text-decoration: none;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s,
+      transform 0.2s;
+  }
+  .friend-card:hover {
+    border-color: hsl(var(--primary) / 0.45);
+    box-shadow: 0 6px 20px -12px hsl(var(--primary) / 0.45);
+    transform: translateY(-2px);
+  }
+  .friend-card.is-muted {
+    opacity: 0.6;
+  }
+  .friend-avatar {
+    position: relative;
+    flex: none;
+    width: 3.5rem;
+    height: 3.5rem;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: hsl(var(--primary) / 0.1);
+    box-shadow: 0 0 0 1px hsl(var(--border));
+  }
+  .friend-avatar::before {
+    content: attr(data-initial);
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: hsl(var(--primary));
+  }
+  .friend-avatar img {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    object-fit: cover;
+  }
+  .friend-body {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .friend-name {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .friend-arrow {
+    width: 0.95rem;
+    height: 0.95rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0;
+    transform: translate(-3px, 3px);
+    transition:
+      opacity 0.2s,
+      transform 0.2s;
+  }
+  .friend-card:hover .friend-name {
+    color: hsl(var(--primary));
+  }
+  .friend-card:hover .friend-arrow {
+    opacity: 1;
+    transform: none;
+  }
+  .friend-intro {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: hsl(var(--muted-foreground));
+  }
+  .friend-host {
+    overflow: hidden;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.75rem;
+    color: hsl(var(--muted-foreground) / 0.85);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+</style>
