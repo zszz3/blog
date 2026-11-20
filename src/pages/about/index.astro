@@ -8,35 +8,27 @@ import { integ } from '@/site-config'
 <PageLayout meta={{ title: '关于我', description: '关于我借此火' }}>
   <main class='about-page animate'>
     <header class='about-intro'>
-      <h1>关于我</h1>
+      <h1>About Me</h1>
       <Image src={avatar} alt='个人头像' class='about-avatar' width={176} height={176} loading='eager' />
     </header>
 
     <div class={integ.typography.class}>
       <ul>
-        <li><strong>学校</strong>：东南大学</li>
-        <li><strong>方向</strong>：RD · AI Agents · 3D Gaussian Splatting</li>
-        <li><strong>经历</strong>：ACMer</li>
+        <li>🏫 <strong>Southeast University</strong></li>
+        <li>🎯 <strong>Focus:</strong> RD · AI Agents · 3D Gaussian Splatting</li>
+        <li>🏅 <strong>Experience:</strong> ACMer</li>
       </ul>
 
-      <h2 id='projects'>正在做的开源项目</h2>
+      <h2 id='projects'>Projects</h2>
+      <p><strong>Author</strong></p>
       <ul>
-        <li>
-          <a href='https://github.com/zszz3/AgentHerd' target='_blank' rel='noopener noreferrer'>AgentHerd</a>：在飞书里指挥
-          Coding Agent。主管在你的电脑上启动 Pi、Codex 或 Claude Code，盯着进度，做完告诉你结果。
-        </li>
-        <li>
-          <a href='https://github.com/zszz3/AgentRecall' target='_blank' rel='noopener noreferrer'>AgentRecall</a>：Agent
-          资产层，搜索、管理和迁移 Coding Agent 的会话、Skill 和 Memory。
-        </li>
-        <li>
-          <a href='https://github.com/zszz3/Pi-Jev-Guide' target='_blank' rel='noopener noreferrer'>Pi-Jev-Guide</a>：Pi
-          Coding Agent 的护栏插件，规则可以自己配置。
-        </li>
-        <li>
-          <a href='https://github.com/vastsa/PI-Desktop' target='_blank' rel='noopener noreferrer'>PI-Desktop</a>（参与贡献）：本地优先的
-          Coding Agent 桌面端。
-        </li>
+        <li><a href='https://github.com/zszz3/AgentHerd' target='_blank' rel='noopener noreferrer'>AgentHerd</a> — Your coding agents, run from Feishu.</li>
+        <li><a href='https://github.com/zszz3/AgentRecall' target='_blank' rel='noopener noreferrer'>AgentRecall</a> — Search, manage, and migrate AI coding agent sessions.</li>
+        <li><a href='https://github.com/zszz3/Pi-Jev-Guide' target='_blank' rel='noopener noreferrer'>Pi-Jev-Guide</a> — A configurable guardrail plugin for Pi Coding Agent.</li>
+      </ul>
+      <p><strong>Contributor</strong></p>
+      <ul>
+        <li><a href='https://github.com/vastsa/PI-Desktop' target='_blank' rel='noopener noreferrer'>PI-Desktop</a> — A local-first desktop app for AI coding agents.</li>
       </ul>
     </div>
   </main>
