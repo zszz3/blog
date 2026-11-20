@@ -3,7 +3,14 @@
     {
       "id_name": "friends",
       "desc": "",
-      "link_list": []
+      "link_list": [
+        {
+          "name": "刘孟玄 Ceylan",
+          "intro": "AI Infra · LLM Serving · Agents",
+          "link": "https://www.liumengxuan.cn/",
+          "avatar": "https://avatars.githubusercontent.com/LiuMengxuan04"
+        }
+      ]
     },
     {
       "id_name": "unavailable",
