@@ -31,6 +31,8 @@ export default defineConfig({
   // https://astro-pure.js.org/docs/setup/deployment#platform-with-base-path
   // base: '/astro-pure/',
   trailingSlash: 'never',
+  // 项目页已并入关于页
+  redirects: { '/projects': '/about#projects' },
   // root: './my-project-directory',
   server: { host: true },
   vite: {

@@ -19,13 +19,13 @@ const { projects } = Astro.props
   {projects.map(project => (
     <article class='project-card'>
       <div class='project-heading'>
-        <h2>{project.name}</h2>
+        <h3>{project.name}</h3>
         <span class='project-role'>{project.role}</span>
       </div>
       <p class='project-description'>{project.description}</p>
       <a class='project-link' href={project.github} target='_blank' rel='noopener noreferrer' aria-label={`${project.name} 的 GitHub 仓库`}>
         <Icon name='github-circle' class='size-5 shrink-0' />
-        <span class='project-url'>{project.github}</span>
+        <span class='project-url'>{project.github.replace(/^https:\/\/github\.com\//, '')}</span>
         <span class='project-arrow' aria-hidden='true'>↗</span>
       </a>
     </article>
@@ -35,15 +35,15 @@ const { projects } = Astro.props
 <style>
   .project-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 28rem), 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+    gap: 1rem;
   }
   .project-card {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     min-width: 0;
-    padding: 1.5rem;
+    padding: 1.25rem 1.35rem;
     border: 1px solid hsl(var(--primary) / .18);
     border-radius: 1rem;
     background: hsl(var(--background) / .8);
@@ -60,10 +60,10 @@ const { projects } = Astro.props
     align-items: center;
     gap: .75rem;
   }
-  .project-heading h2 {
+  .project-heading h3 {
     margin: 0;
     color: hsl(var(--foreground));
-    font-size: 1.375rem;
+    font-size: 1.2rem;
     font-weight: 600;
     line-height: 1.4;
     letter-spacing: -.025em;
@@ -77,10 +77,10 @@ const { projects } = Astro.props
     line-height: 1.5;
   }
   .project-description {
-    margin: 1rem 0 .5rem;
+    margin: .75rem 0 .5rem;
     color: hsl(var(--muted-foreground));
-    font-size: 1rem;
-    line-height: 1.8;
+    font-size: .9375rem;
+    line-height: 1.75;
     overflow-wrap: break-word;
   }
   .project-link {
